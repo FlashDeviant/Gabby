@@ -7,6 +7,8 @@ using Microsoft.Extensions.Configuration;
 
 namespace Gabby.Modules
 {
+    [Name("Help")]
+    [Group("help")]
     public sealed class HelpModule : ModuleBase<SocketCommandContext>
     {
         private readonly IConfigurationRoot _config;
@@ -18,7 +20,7 @@ namespace Gabby.Modules
             _config = config;
         }
 
-        [Command("help")]
+        [Command]
         [UsedImplicitly]
         public async Task HelpAsync()
         {
@@ -26,7 +28,13 @@ namespace Gabby.Modules
             var builder = new EmbedBuilder
             {
                 Color = new Color(114, 137, 218),
-                Description = "These are the commands you can use"
+                Description = "Hiya, my name is Gabby! I'm here to help make talking to everybody even more fun!\r\n" +
+                              "\r\n" +
+                              "I'm really good at making channel pairs. It's a special pair of channels, one text and one voice. The text one stays hidden until you join the voice channel and goes away when you leave, keeping your server nice and clean.\r\n" +
+                              "\r\n" +
+                              "I will make sure the channels appear when they need to when I'm online, you can also ask me to make new ones or send them away.\r\n" +
+                              "These are the commands you can use:",
+                ImageUrl = "https://i.imgur.com/SXqMEuM.png"
             };
 
             foreach (var module in _service.Modules)
@@ -35,8 +43,13 @@ namespace Gabby.Modules
                 foreach (var cmd in module.Commands)
                 {
                     var result = await cmd.CheckPreconditionsAsync(Context);
-                    if (result.IsSuccess)
-                        description += $"{prefix}{cmd.Aliases.First()}\n";
+                    if (!result.IsSuccess) continue;
+                    description += $"{prefix}{cmd.Aliases.First()}";
+                    description = cmd.Parameters.Aggregate(description,
+                        (current, parameterInfo) => current + $" <{parameterInfo.Name}>");
+
+                    description += "\n";
+
                 }
 
                 if (!string.IsNullOrWhiteSpace(description))
@@ -51,7 +64,7 @@ namespace Gabby.Modules
             await ReplyAsync("", false, builder.Build());
         }
 
-        [Command("help")]
+        [Command]
         [UsedImplicitly]
         public async Task HelpAsync(string command)
         {
