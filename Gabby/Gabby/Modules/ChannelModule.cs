@@ -133,7 +133,7 @@ namespace Gabby.Modules
             roleToDelete?.DeleteAsync();
 
             embed = MessageModule.GenerateEmbedResponse(
-                "I packed up the channel pair you gave me and sent it on it's way, so long! :,)",
+                "I packed up the channel pair you gave me and sent it on it's way, so long! \uD83D\uDE22",
                 Color.Green);
 
             await ReplyAsync("", false, embed);
