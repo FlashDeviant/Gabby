@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using Gabby.Modules;
 using Microsoft.Extensions.Configuration;
 
 namespace Gabby.Services
@@ -42,7 +44,13 @@ namespace Gabby.Services
                 var result = await _commands.ExecuteAsync(context, argPos, _provider); // Execute the command
 
                 if (!result.IsSuccess) // If not successful, reply with the error.
-                    await context.Channel.SendMessageAsync(result.ToString());
+                {
+                    var embed = MessageModule.GenerateEmbedResponse(
+                        "Uh oh, something went wrong:\r\n" +
+                        $"{result}", 
+                        Color.Red);
+                    await context.Channel.SendMessageAsync("", false, embed);
+                }
             }
         }
     }

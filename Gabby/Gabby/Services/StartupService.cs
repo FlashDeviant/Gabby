@@ -36,7 +36,7 @@ namespace Gabby.Services
 
             await _discord.LoginAsync(TokenType.Bot, discordToken);     // Login to discord
             await _discord.StartAsync();                                // Connect to the websocket
-
+            await _discord.SetActivityAsync(new Game("with all my friends"));
             await _commands.AddModulesAsync(Assembly.GetEntryAssembly(), _provider);     // Load commands and modules into the command service
         }
     }
