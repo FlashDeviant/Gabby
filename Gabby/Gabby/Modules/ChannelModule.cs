@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
+using Discord.WebSocket;
 using JetBrains.Annotations;
 
 namespace Gabby.Modules
@@ -124,8 +125,8 @@ namespace Gabby.Modules
                 return;
             }
 
-            var textChannelToDelete = Context.Guild.Channels.SingleOrDefault(x => x.Name == textChannelName);
-            var voiceChannelToDelete = Context.Guild.Channels.SingleOrDefault(x => x.Name == name.Trim());
+            var textChannelToDelete = Context.Guild.Channels.SingleOrDefault(x => x.Name == textChannelName && x.GetType() == typeof(SocketTextChannel));
+            var voiceChannelToDelete = Context.Guild.Channels.SingleOrDefault(x => x.Name == name.Trim() && x.GetType() == typeof(SocketVoiceChannel));
             var roleToDelete = Context.Guild.Roles.SingleOrDefault(x => x.Name == name.Trim());
 
             textChannelToDelete?.DeleteAsync();
