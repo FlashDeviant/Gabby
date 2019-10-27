@@ -4,6 +4,9 @@
 <h4 align="center">
   The really friendly discord bot that helps you make channel pairs
 </h4>
+<h4 align="center">
+  <a href="https://discord.gg/GPCkUX"><img src="https://badgen.net/badge/Gabby's%20Birdhouse/Join?icon=discord"</a>
+</h4>
 
 Gabby Picture by [DashieSparkle](https://www.deviantart.com/dashiesparkle)
 
