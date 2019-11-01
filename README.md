@@ -5,7 +5,8 @@
   The really friendly discord bot that helps you make channel pairs
 </h4>
 <h4 align="center">
-  <a href="https://discord.gg/GPCkUX"><img src="https://badgen.net/badge/Gabby's%20Birdhouse/Join?icon=discord"</a>
+  <a href="https://discord.gg/GPCkUX"><img src="https://badgen.net/badge/Gabby's%20Birdhouse/Join/7289DA?icon=discord"</a>
+  <a href="https://app.gitkraken.com/glo/board/XbwcELLoTAAPx0iR"><img src="https://badgen.net/badge/Glo%20Board/View/149287?icon=https://svgshare.com/i/Fr5.svg"</a>
 </h4>
 
 
