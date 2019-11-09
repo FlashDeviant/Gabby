@@ -1,10 +1,14 @@
-﻿using System.Threading.Tasks;
-
-namespace Gabby
+﻿namespace Gabby
 {
-    class Program
+    using System.Threading.Tasks;
+    using JetBrains.Annotations;
+
+    internal static class Program
     {
+        [NotNull]
         public static Task Main(string[] args)
-            => Startup.RunAsync(args);
+        {
+            return Startup.RunAsync(args);
+        }
     }
 }

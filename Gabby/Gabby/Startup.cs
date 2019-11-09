@@ -1,14 +1,16 @@
-﻿using System;
-using System.Threading.Tasks;
-using Discord;
-using Discord.Commands;
-using Discord.WebSocket;
-using Gabby.Services;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-
-namespace Gabby
+﻿namespace Gabby
 {
+    using System;
+    using System.Threading.Tasks;
+    using Amazon.DynamoDBv2;
+    using Discord;
+    using Discord.Commands;
+    using Discord.WebSocket;
+    using Gabby.Handlers;
+    using Gabby.Services;
+    using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.DependencyInjection;
+
     public sealed class Startup
     {
         // ReSharper disable once UnusedParameter.Local
@@ -17,7 +19,7 @@ namespace Gabby
             var builder = new ConfigurationBuilder() // Create a new instance of the config builder
                 .SetBasePath(AppContext.BaseDirectory) // Specify the default location for the config file
                 .AddYamlFile("_config.yml"); // Add this (yaml encoded) file to the configuration
-            Configuration = builder.Build(); // Build the configuration
+            this.Configuration = builder.Build(); // Build the configuration
         }
 
         private IConfigurationRoot Configuration { get; }
@@ -31,12 +33,13 @@ namespace Gabby
         private async Task RunAsync()
         {
             var services = new ServiceCollection(); // Create a new instance of a service collection
-            ConfigureServices(services);
+            this.ConfigureServices(services);
 
             var provider = services.BuildServiceProvider(); // Build the service provider
             provider.GetRequiredService<LoggingService>(); // Start the logging service
             provider.GetRequiredService<CommandHandler>(); // Start the command handler service
-            provider.GetRequiredService<ChannelHandler>();
+            provider.GetRequiredService<PairHandler>();
+            provider.GetRequiredService<GuildHandler>();
 
             await provider.GetRequiredService<StartupService>().StartAsync(); // Start the startup service
             await Task.Delay(-1); // Keep the program alive
@@ -44,6 +47,10 @@ namespace Gabby
 
         private void ConfigureServices(IServiceCollection services)
         {
+            Environment.SetEnvironmentVariable("AWS_ACCESS_KEY_ID", this.Configuration["AWS:AccessKey"]);
+            Environment.SetEnvironmentVariable("AWS_SECRET_ACCESS_KEY", this.Configuration["AWS:SecretKey"]);
+            Environment.SetEnvironmentVariable("AWS_REGION", this.Configuration["AWS:Region"]);
+            services.AddAWSService<IAmazonDynamoDB>();
             services.AddSingleton(new DiscordSocketClient(new DiscordSocketConfig
                 {
                     // Add discord to the collection
@@ -57,11 +64,12 @@ namespace Gabby
                     DefaultRunMode = RunMode.Async // Force all commands to run async by default
                 }))
                 .AddSingleton<CommandHandler>() // Add the command handler to the collection
-                .AddSingleton<ChannelHandler>()
+                .AddSingleton<PairHandler>()
+                .AddSingleton<GuildHandler>()
                 .AddSingleton<StartupService>() // Add startup service to the collection
                 .AddSingleton<LoggingService>() // Add logging service to the collection
                 .AddSingleton<Random>() // Add random to the collection
-                .AddSingleton(Configuration); // Add the configuration to the collection
+                .AddSingleton(this.Configuration); // Add the configuration to the collection
         }
     }
 }

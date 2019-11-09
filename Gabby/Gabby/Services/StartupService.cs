@@ -1,19 +1,23 @@
-﻿using System;
-using System.Reflection;
-using System.Threading.Tasks;
-using Discord;
-using Discord.Commands;
-using Discord.WebSocket;
-using Microsoft.Extensions.Configuration;
-
-namespace Gabby.Services
+﻿namespace Gabby.Services
 {
-    public class StartupService
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Reflection;
+    using System.Threading.Tasks;
+    using Discord;
+    using Discord.Commands;
+    using Discord.WebSocket;
+    using Gabby.Data;
+    using Gabby.Models;
+    using Microsoft.Extensions.Configuration;
+
+    public sealed class StartupService
     {
-        private readonly IServiceProvider _provider;
-        private readonly DiscordSocketClient _discord;
         private readonly CommandService _commands;
         private readonly IConfigurationRoot _config;
+        private readonly DiscordSocketClient _discord;
+        private readonly IServiceProvider _provider;
 
         // DiscordSocketClient, CommandService, and IConfigurationRoot are injected automatically from the IServiceProvider
         public StartupService(
@@ -22,22 +26,50 @@ namespace Gabby.Services
             CommandService commands,
             IConfigurationRoot config)
         {
-            _provider = provider;
-            _config = config;
-            _discord = discord;
-            _commands = commands;
+            this._provider = provider;
+            this._config = config;
+            this._discord = discord;
+            this._commands = commands;
+
+            this._discord.Connected += this.OnConnected;
         }
 
-        public async Task StartAsync()
+        /// <exception cref="T:System.Exception">
+        ///     Please enter your bot's token into the `_config.yml` file found in the
+        ///     applications root directory.
+        /// </exception>
+        internal async Task StartAsync()
         {
-            string discordToken = _config["tokens:discord"];     // Get the discord token from the config file
+            var discordToken = this._config["tokens:discord"]; // Get the discord token from the config file
             if (string.IsNullOrWhiteSpace(discordToken))
-                throw new Exception("Please enter your bot's token into the `_configuration.json` file found in the applications root directory.");
+                throw new Exception(
+                    "Please enter your bot's token into the `_config.yml` file found in the applications root directory.");
 
-            await _discord.LoginAsync(TokenType.Bot, discordToken);     // Login to discord
-            await _discord.StartAsync();                                // Connect to the websocket
-            await _discord.SetActivityAsync(new Game("with all my friends"));
-            await _commands.AddModulesAsync(Assembly.GetEntryAssembly(), _provider);     // Load commands and modules into the command service
+            await this._discord.LoginAsync(TokenType.Bot, discordToken).ConfigureAwait(false); // Login to discord
+            await this._discord.StartAsync().ConfigureAwait(false); // Connect to the websocket
+            await this._discord.SetActivityAsync(new Game("with all my friends")).ConfigureAwait(false);
+            await this._commands.AddModulesAsync(Assembly.GetEntryAssembly(), this._provider)
+                .ConfigureAwait(false); // Load commands and modules into the command service
+        }
+
+        private async Task OnConnected()
+        {
+            var recordedGuilds = await DynamoSystem.ScanItemAsync<GuildInfo>();
+            var guildsToUpdate = new List<GuildInfo>();
+            foreach (var rGuild in recordedGuilds)
+            {
+                var match = this._discord.Guilds.First(x => x.Id.ToString() == rGuild.GuildGuid);
+                if (match == null)
+                {
+                    await DynamoSystem.DeleteItemAsync(rGuild);
+                    continue;
+                }
+
+                rGuild.GuildName = match.Name;
+                guildsToUpdate.Add(rGuild);
+            }
+
+            foreach (var uGuild in guildsToUpdate) await DynamoSystem.UpdateItemAsync(uGuild);
         }
     }
 }

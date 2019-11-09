@@ -1,9 +1,8 @@
-﻿using System.Threading.Tasks;
-using Discord;
-
-namespace Gabby.Modules
+﻿namespace Gabby.Modules
 {
-    public static class MessageModule
+    using Discord;
+
+    internal static class MessageModule
     {
         public static Embed GenerateEmbedResponse(string message)
         {

@@ -1,12 +1,12 @@
-﻿using System.Linq;
-using System.Threading.Tasks;
-using Discord;
-using Discord.Commands;
-using JetBrains.Annotations;
-using Microsoft.Extensions.Configuration;
-
-namespace Gabby.Modules
+﻿namespace Gabby.Modules
 {
+    using System.Linq;
+    using System.Threading.Tasks;
+    using Discord;
+    using Discord.Commands;
+    using JetBrains.Annotations;
+    using Microsoft.Extensions.Configuration;
+
     [Name("Help")]
     [Group("help")]
     public sealed class HelpModule : ModuleBase<SocketCommandContext>
@@ -16,15 +16,15 @@ namespace Gabby.Modules
 
         public HelpModule(CommandService service, IConfigurationRoot config)
         {
-            _service = service;
-            _config = config;
+            this._service = service;
+            this._config = config;
         }
 
         [Command]
         [UsedImplicitly]
         public async Task HelpAsync()
         {
-            var prefix = _config["prefix"];
+            var prefix = this._config["prefix"];
             var builder = new EmbedBuilder
             {
                 Color = new Color(114, 137, 218),
@@ -37,19 +37,19 @@ namespace Gabby.Modules
                 ImageUrl = "https://i.imgur.com/SXqMEuM.png"
             };
 
-            foreach (var module in _service.Modules)
+            foreach (var module in this._service.Modules)
             {
                 string description = null;
                 foreach (var cmd in module.Commands)
                 {
-                    var result = await cmd.CheckPreconditionsAsync(Context);
+                    var result = await cmd.CheckPreconditionsAsync(this.Context);
                     if (!result.IsSuccess) continue;
+
                     description += $"{prefix}{cmd.Aliases.First()}";
                     description = cmd.Parameters.Aggregate(description,
                         (current, parameterInfo) => current + $" <{parameterInfo.Name}>");
 
                     description += "\n";
-
                 }
 
                 if (!string.IsNullOrWhiteSpace(description))
@@ -61,18 +61,18 @@ namespace Gabby.Modules
                     });
             }
 
-            await ReplyAsync("", false, builder.Build());
+            await this.ReplyAsync("", false, builder.Build());
         }
 
         [Command]
         [UsedImplicitly]
         public async Task HelpAsync(string command)
         {
-            var result = _service.Search(Context, command);
+            var result = this._service.Search(this.Context, command);
 
             if (!result.IsSuccess)
             {
-                await ReplyAsync($"Sorry, I couldn't find a command like **{command}**.");
+                await this.ReplyAsync($"Sorry, I couldn't find a command like **{command}**.");
                 return;
             }
 
@@ -92,7 +92,7 @@ namespace Gabby.Modules
                     x.IsInline = false;
                 });
 
-            await ReplyAsync("", false, builder.Build());
+            await this.ReplyAsync("", false, builder.Build());
         }
     }
 }

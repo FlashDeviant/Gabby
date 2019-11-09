@@ -328,3 +328,7 @@ ASALocalRun/
 
 # MFractors (Xamarin productivity tool) working folder 
 .mfractor/
+
+Gabby/Gabby/_config.yml
+
+Gabby/Gabby/appsettings.json

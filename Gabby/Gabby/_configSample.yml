@@ -1,3 +1,5 @@
 prefix: "!"
 tokens:
     discord: DiscordTokenHere
+owners:
+    - ID
