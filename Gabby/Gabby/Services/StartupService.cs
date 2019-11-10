@@ -40,7 +40,7 @@
         /// </exception>
         internal async Task StartAsync()
         {
-            var discordToken = this._config["tokens:discord"]; // Get the discord token from the config file
+            var discordToken = this._config["Tokens:Discord"]; // Get the discord token from the config file
             if (string.IsNullOrWhiteSpace(discordToken))
                 throw new Exception(
                     "Please enter your bot's token into the `_config.yml` file found in the applications root directory.");

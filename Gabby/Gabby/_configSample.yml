@@ -1,5 +1,9 @@
-prefix: "!"
-tokens:
-    discord: DiscordTokenHere
-owners:
+Prefix: "!"
+Tokens:
+    Discord: token
+Owners:
     - ID
+AWS:
+    AccessKey: key
+    SecretKey: key
+    Region: eu-west-2

@@ -40,7 +40,7 @@
             var context = new SocketCommandContext(this._discord, msg); // Create the command context
 
             var argPos = 0; // Check if the message has a valid command prefix
-            if (msg.HasStringPrefix(this._config["prefix"], ref argPos) ||
+            if (msg.HasStringPrefix(this._config["Prefix"], ref argPos) ||
                 msg.HasMentionPrefix(this._discord.CurrentUser, ref argPos))
             {
                 var result = await this._commands.ExecuteAsync(context, argPos, this._provider)

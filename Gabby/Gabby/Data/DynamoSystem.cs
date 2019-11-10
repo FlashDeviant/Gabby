@@ -4,14 +4,23 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using Amazon;
     using Amazon.DynamoDBv2;
     using Amazon.DynamoDBv2.DataModel;
     using Amazon.DynamoDBv2.DocumentModel;
+    using Amazon.Runtime;
     using JetBrains.Annotations;
 
     internal static class DynamoSystem
     {
-        private static readonly AmazonDynamoDBClient Client = new AmazonDynamoDBClient();
+        private static readonly BasicAWSCredentials Credentials =
+            new Amazon.Runtime.BasicAWSCredentials(
+                Startup.StaticConfiguration["AWS:AccessKey"],
+                Startup.StaticConfiguration["AWS:SecretKey"]);
+
+        private static readonly AmazonDynamoDBClient Client = new AmazonDynamoDBClient(Credentials,
+            RegionEndpoint.GetBySystemName(Startup.StaticConfiguration["AWS:Region"]));
+
         private static readonly DynamoDBContext Context = new DynamoDBContext(Client);
 
         #region GET

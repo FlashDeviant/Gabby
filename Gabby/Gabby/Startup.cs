@@ -13,6 +13,8 @@
 
     public sealed class Startup
     {
+        internal static IConfigurationRoot StaticConfiguration;
+
         // ReSharper disable once UnusedParameter.Local
         public Startup(string[] args)
         {
@@ -20,6 +22,7 @@
                 .SetBasePath(AppContext.BaseDirectory) // Specify the default location for the config file
                 .AddYamlFile("_config.yml"); // Add this (yaml encoded) file to the configuration
             this.Configuration = builder.Build(); // Build the configuration
+            StaticConfiguration = this.Configuration;
         }
 
         private IConfigurationRoot Configuration { get; }
@@ -47,9 +50,6 @@
 
         private void ConfigureServices(IServiceCollection services)
         {
-            Environment.SetEnvironmentVariable("AWS_ACCESS_KEY_ID", this.Configuration["AWS:AccessKey"]);
-            Environment.SetEnvironmentVariable("AWS_SECRET_ACCESS_KEY", this.Configuration["AWS:SecretKey"]);
-            Environment.SetEnvironmentVariable("AWS_REGION", this.Configuration["AWS:Region"]);
             services.AddAWSService<IAmazonDynamoDB>();
             services.AddSingleton(new DiscordSocketClient(new DiscordSocketConfig
                 {
