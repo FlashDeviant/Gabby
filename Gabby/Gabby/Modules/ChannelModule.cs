@@ -154,15 +154,33 @@
 
             var pairToRemove = await DynamoSystem.GetItemAsync<ChannelPair>(voiceChannelResults[0].Id);
 
-            await this.Context.Guild.Channels.Single(x => x.Id.ToString() == pairToRemove.TextChannelGuid)
+            await this.Context.Guild.Channels.Single(x => x.Id.ToString() == pairToRemove?.TextChannelGuid)
                 .DeleteAsync();
-            await this.Context.Guild.VoiceChannels.Single(x => x.Id.ToString() == pairToRemove.VoiceChannelGuid)
+            await this.Context.Guild.VoiceChannels.Single(x => x.Id.ToString() == pairToRemove?.VoiceChannelGuid)
                 .DeleteAsync();
-            await this.Context.Guild.Roles.Single(x => x.Id.ToString() == pairToRemove.RoleGuid)
+            await this.Context.Guild.Roles.Single(x => x.Id.ToString() == pairToRemove?.RoleGuid)
                 .DeleteAsync();
+
+            await DynamoSystem.DeleteItemAsync(pairToRemove);
 
             embed = MessageModule.GenerateEmbedResponse(
                 "I packed up the channel pair you gave me and sent it on it's way, so long! \uD83D\uDE22",
+                Color.Green);
+
+            await this.ReplyAsync("", false, embed).ConfigureAwait(false);
+        }
+
+        [Command("removechannelpairrecord")]
+        [Alias("rcpr")]
+        [Summary("Remove a channel pair record from the database")]
+        [RequireOwner]
+        [UsedImplicitly]
+        public async Task RemoveChannelPairRecordAsync([Remainder] [NotNull] string guid)
+        {
+            await DynamoSystem.DeleteItemAsync<ChannelPair>(guid);
+
+            var embed = MessageModule.GenerateEmbedResponse(
+                "I threw out my info on the channel pair you gave me, my feature will no longer work on it! \uD83D\uDE22",
                 Color.Green);
 
             await this.ReplyAsync("", false, embed).ConfigureAwait(false);

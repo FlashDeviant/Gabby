@@ -95,6 +95,11 @@
             await Context.DeleteAsync(item).ConfigureAwait(false);
         }
 
+        public static async Task DeleteItemAsync<T>(string hash)
+        {
+            await Context.DeleteAsync<T>(hash);
+        }
+
         #endregion
     }
 }
