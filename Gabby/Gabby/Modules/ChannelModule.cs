@@ -91,7 +91,7 @@
             await textChannel.AddPermissionOverwriteAsync(everyoneRole,
                     new OverwritePermissions(viewChannel: PermValue.Deny))
                 .ConfigureAwait(false);
-            await textChannel.AddPermissionOverwriteAsync(this.Context.User,
+            await textChannel.AddPermissionOverwriteAsync(this.Context.Client.CurrentUser,
                 new OverwritePermissions(viewChannel: PermValue.Allow));
 
             var pair = new ChannelPair
