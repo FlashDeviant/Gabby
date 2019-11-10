@@ -2,6 +2,7 @@
 {
     using System.Linq;
     using System.Threading.Tasks;
+    using Discord;
     using Discord.Commands;
     using Discord.WebSocket;
     using Gabby.Data;
@@ -12,7 +13,7 @@
     internal sealed class VoiceModule : ModuleBase<SocketCommandContext>
     {
         public static async Task HandleChannelPair([NotNull] SocketUser user, SocketVoiceState oldVoiceState,
-            SocketVoiceState newVoiceState)
+            SocketVoiceState newVoiceState, DiscordSocketClient discord)
         {
             var oldGuild = oldVoiceState.VoiceChannel?.Guild;
             var newGuild = newVoiceState.VoiceChannel?.Guild;
@@ -28,16 +29,26 @@
             var oldGuildUser = oldGuild?.GetUser(user.Id);
             var newGuildUser = newGuild?.GetUser(user.Id);
 
-            if (oldPair != null)
+            if (oldPair != null && oldGuild != null)
             {
                 var role = oldGuild?.Roles.SingleOrDefault(x => x.Id.ToString() == oldPair.RoleGuid);
                 if (role != null) await oldGuildUser.RemoveRoleAsync(role);
+                var embed = MessageModule.GenerateEmbedResponse(
+                    $"\u274C {user.Username} has left {oldVoiceState.VoiceChannel?.Name}",
+                    Color.Red);
+                await oldGuild.TextChannels.Single(x => x.Id.ToString() == oldPair.TextChannelGuid)
+                    .SendMessageAsync("", false, embed);
             }
 
-            if (newPair != null)
+            if (newPair != null && newGuild != null)
             {
                 var role = newGuild?.Roles.SingleOrDefault(x => x.Id.ToString() == newPair.RoleGuid);
                 if (role != null) await newGuildUser.AddRoleAsync(role);
+                var embed = MessageModule.GenerateEmbedResponse(
+                    $"\u2705 {user.Username} has joined {newVoiceState.VoiceChannel?.Name}",
+                    Color.Green);
+                await newGuild.TextChannels.Single(x => x.Id.ToString() == newPair.TextChannelGuid)
+                    .SendMessageAsync("", false, embed);
             }
         }
     }

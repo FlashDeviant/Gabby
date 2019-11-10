@@ -22,7 +22,7 @@
         {
             if (user.Id == this._discord.CurrentUser.Id) return;
 
-            await VoiceModule.HandleChannelPair(user, oldVoiceState, newVoiceState).ConfigureAwait(false);
+            await VoiceModule.HandleChannelPair(user, oldVoiceState, newVoiceState, this._discord).ConfigureAwait(false);
         }
     }
 }
