@@ -33,7 +33,7 @@ Gabby helps by setting up these channel pairs and monitoring them so that when a
 
 She does this by using a role that is named like the voice channel. The channel permissions on the text channel are set so that everyone cannot see it, but the name role can. Gabby then assigns and removes this role from users as they connect and disconnect respectively.
 
-Gabby also features some commands that lets server owners set up these channel pairs with sease and remove them just as quickly.
+Gabby also features some commands that lets server owners set up these channel pairs with ease and remove them just as quickly.
 
 ## How can I use her on my server?
 Currently I'm still perfecting functionality and making her more reliable. Once this is done I may consider hosting her publicly.
@@ -41,8 +41,8 @@ Currently I'm still perfecting functionality and making her more reliable. Once 
 If you wish to use her now then feel free to clone this repo and use `dotnet run` to build and run the project.
 Gabby is built on .NET Core 2.1 using the Discord.Net API. 
 
-Currently I am using Amazons DynamoDB to allow her to store information on channel pairs, the settings structure for which can be found in the `_configSample.yml` file. 
+Currently I am using AWS DynamoDB to allow her to store information on channel pairs, the settings structure for which can be found in the `_configSample.yml` file. 
 
-DynamoDB is in the Free Tier for AWS up to a total of 25GB so setting one up should be simple. Then just provide the IAM access and secret token with permission to read/write to DynamoDB along with the region code your using and your good to go.
+DynamoDB is in the Free Tier for AWS up to a total of 25GB of data storage so setting one up should be simple. Then just provide the IAM access and secret token with permission to read/write to DynamoDB along with the region code your using into the `_config.yml` and your good to go.
 
 **NOTE: Make sure to put your Discord bot token along with the above ina new file called `_config.yml` file, following the structure of `_configSample.yml`**
