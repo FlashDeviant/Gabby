@@ -20,7 +20,7 @@ Gabby lets Discord server owners and managers create channel pairs. It also trac
 ## What is a channel pair?
 There might be a better name for it, but a channel pair is a text and a voice channel in discord that are directly linked.
 
-In TeamSpeak each voice channel had a text chat attached to it. Only those connected to the channel could see that chat which made things nice and clean. Discord as of yet hasn't added the same behaviour so a lot of Discord servers emulate this feature by making a pair of channels that sit next to each ohter in the tree like below.
+In TeamSpeak each voice channel had a text chat attached to it. Only those connected to the channel could see that chat which made things nice and clean. Discord as of yet hasn't added the same behaviour so a lot of Discord servers emulate this feature by making a pair of channels that sit next to each other in the tree like below.
 
 ![Picture of Channel Pair](https://i.imgur.com/OLV4CcF.png)
 
