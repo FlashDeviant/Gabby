@@ -39,7 +39,7 @@ Gabby also features some commands that lets server owners set up these channel p
 Currently I'm still perfecting functionality and making her more reliable. Once this is done I may consider hosting her publicly.
 
 If you wish to use her now then feel free to clone this repo and use `dotnet run` to build and run the project.
-Gabby is built on .NET Core 2.1 using the Discord.Net API. 
+Gabby is built on .NET Core 3.1 using the Discord.Net API. 
 
 Currently I am using AWS DynamoDB to allow her to store information on channel pairs, the settings structure for which can be found in the `_configSample.yml` file. 
 
