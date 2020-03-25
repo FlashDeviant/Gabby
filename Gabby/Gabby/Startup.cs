@@ -83,7 +83,9 @@
                 // .AddSingleton<LavaSocketClient>()
                 .AddSingleton(new LavaConfig
                 {
-                    Authorization = "alpha",
+                    Hostname = StaticConfiguration["LavaLink:Host"],
+                    Port = Convert.ToUInt16(StaticConfiguration["LavaLink:Port"]),
+                    Authorization = StaticConfiguration["LavaLink:Password"],
                     SelfDeaf = false
                 })
                 .AddSingleton<LavaNode>()
