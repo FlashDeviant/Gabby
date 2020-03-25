@@ -1,16 +1,15 @@
-﻿namespace Gabby.Modules
+namespace Gabby.Services
 {
     using System.Linq;
     using System.Threading.Tasks;
     using Discord;
-    using Discord.Commands;
     using Discord.WebSocket;
     using Gabby.Data;
+    using Gabby.Handlers;
     using Gabby.Models;
     using JetBrains.Annotations;
 
-    [UsedImplicitly]
-    internal sealed class VoiceModule : ModuleBase<SocketCommandContext>
+    public class ChannelPairService
     {
         public static async Task HandleChannelPair([NotNull] SocketUser user, SocketVoiceState oldVoiceState,
             SocketVoiceState newVoiceState, DiscordSocketClient discord)
@@ -33,7 +32,7 @@
             {
                 var role = oldGuild?.Roles.SingleOrDefault(x => x.Id.ToString() == oldPair.RoleGuid);
                 if (role != null) await oldGuildUser.RemoveRoleAsync(role);
-                var embed = MessageModule.GenerateEmbedResponse(
+                var embed = EmbedHandler.GenerateEmbedResponse(
                     $"\u274C {user.Username} has left {oldVoiceState.VoiceChannel?.Name}",
                     Color.Red);
                 await oldGuild.TextChannels.Single(x => x.Id.ToString() == oldPair.TextChannelGuid)
@@ -44,7 +43,7 @@
             {
                 var role = newGuild?.Roles.SingleOrDefault(x => x.Id.ToString() == newPair.RoleGuid);
                 if (role != null) await newGuildUser.AddRoleAsync(role);
-                var embed = MessageModule.GenerateEmbedResponse(
+                var embed = EmbedHandler.GenerateEmbedResponse(
                     $"\u2705 {user.Username} has joined {newVoiceState.VoiceChannel?.Name}",
                     Color.Green);
                 await newGuild.TextChannels.Single(x => x.Id.ToString() == newPair.TextChannelGuid)

@@ -48,9 +48,13 @@
 
                 if (!result.IsSuccess) // If not successful, reply with the error.
                 {
-                    var embed = MessageModule.GenerateEmbedResponse("Uh oh, something went wrong:\r\n" + $"{result}",
+                    var embed = EmbedHandler.GenerateEmbedResponse("Uh oh, something went wrong:\r\n" + $"{result}\r\n\r\nPlease try using '{this._config["Prefix"]}help <command>' to find out how to use this command",
                         Color.Red);
                     await context.Channel.SendMessageAsync("", false, embed).ConfigureAwait(false);
+                }
+                else
+                {
+                    await msg.DeleteAsync();
                 }
             }
         }

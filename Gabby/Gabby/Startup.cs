@@ -10,6 +10,8 @@
     using Gabby.Services;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
+    using Victoria;
+    using MusicService = Gabby.Services.MusicService;
 
     public sealed class Startup
     {
@@ -44,12 +46,21 @@
             provider.GetRequiredService<PairHandler>();
             provider.GetRequiredService<GuildHandler>();
 
+            provider.GetRequiredService<MusicService>();
+
             await provider.GetRequiredService<StartupService>().StartAsync(); // Start the startup service
             await Task.Delay(-1); // Keep the program alive
         }
 
         private void ConfigureServices(IServiceCollection services)
         {
+            // var victoriaConfig = new Configuration
+            // {
+            //     Password = StaticConfiguration["LavaLink:Password"],
+            //     LogSeverity = LogSeverity.Verbose,
+            //     AutoDisconnect = true
+            // };
+
             services.AddAWSService<IAmazonDynamoDB>();
             services.AddSingleton(new DiscordSocketClient(new DiscordSocketConfig
                 {
@@ -68,6 +79,15 @@
                 .AddSingleton<GuildHandler>()
                 .AddSingleton<StartupService>() // Add startup service to the collection
                 .AddSingleton<LoggingService>() // Add logging service to the collection
+                // .AddSingleton(new LavaRestClient(victoriaConfig))
+                // .AddSingleton<LavaSocketClient>()
+                .AddSingleton(new LavaConfig
+                {
+                    Authorization = "alpha",
+                    SelfDeaf = false
+                })
+                .AddSingleton<LavaNode>()
+                .AddSingleton<MusicService>()
                 .AddSingleton<Random>() // Add random to the collection
                 .AddSingleton(this.Configuration); // Add the configuration to the collection
         }

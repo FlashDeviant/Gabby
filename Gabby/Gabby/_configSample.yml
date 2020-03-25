@@ -7,3 +7,7 @@ AWS:
     AccessKey: key
     SecretKey: key
     Region: eu-west-2
+LavaLink:
+    Host: 192.168.0.1
+    Port: 2333
+    Password: "password"

@@ -3,6 +3,7 @@
     using System.Threading.Tasks;
     using Discord.WebSocket;
     using Gabby.Modules;
+    using Gabby.Services;
     using JetBrains.Annotations;
 
     public sealed class PairHandler
@@ -20,9 +21,9 @@
         private async Task OnUserVoiceStateUpdatedAsync([NotNull] SocketUser user, SocketVoiceState oldVoiceState,
             SocketVoiceState newVoiceState)
         {
-            if (user.Id == this._discord.CurrentUser.Id) return;
+            if (user.Id == this._discord.CurrentUser.Id || (oldVoiceState.VoiceChannel == newVoiceState.VoiceChannel)) return;
 
-            await VoiceModule.HandleChannelPair(user, oldVoiceState, newVoiceState, this._discord).ConfigureAwait(false);
+            await ChannelPairService.HandleChannelPair(user, oldVoiceState, newVoiceState, this._discord).ConfigureAwait(false);
         }
     }
 }

@@ -7,6 +7,7 @@
     using Discord;
     using Discord.Commands;
     using Gabby.Data;
+    using Gabby.Handlers;
     using Gabby.Models;
     using JetBrains.Annotations;
 
@@ -36,7 +37,7 @@
             Embed embed;
             if (!name.All(c => char.IsLetterOrDigit(c) || c == ' '))
             {
-                embed = MessageModule.GenerateEmbedResponse(
+                embed = EmbedHandler.GenerateEmbedResponse(
                     "The channel name you gave me contains funny characters.\r\n" +
                     "\r\n" +
                     "Please make sure your name only uses alphanumeric characters or spaces",
@@ -50,7 +51,7 @@
 
             if (this.Context.Guild.Channels.Any(x => x.Name == name))
             {
-                embed = MessageModule.GenerateEmbedResponse(
+                embed = EmbedHandler.GenerateEmbedResponse(
                     "Oops, a voice or text channel is already using that name already!\r\n" +
                     "I guess it's pretty popular \uD83D\uDE2E",
                     Color.Orange);
@@ -60,7 +61,7 @@
 
             if (this.Context.Guild.Channels.Any(x => x.Name == textChannelName))
             {
-                embed = MessageModule.GenerateEmbedResponse(
+                embed = EmbedHandler.GenerateEmbedResponse(
                     "Oops, a text channel is already using that name already!\r\n" +
                     "I guess it's pretty popular \uD83D\uDE2E",
                     Color.Orange);
@@ -70,7 +71,7 @@
 
             if (this.Context.Guild.Roles.Any(x => x.Name == name))
             {
-                embed = MessageModule.GenerateEmbedResponse(
+                embed = EmbedHandler.GenerateEmbedResponse(
                     "Oops, a role exists with that name already!\r\n" +
                     "I guess it's pretty popular \uD83D\uDE2E",
                     Color.Orange);
@@ -106,7 +107,7 @@
             };
             await DynamoSystem.PutItemAsync(pair).ConfigureAwait(false);
 
-            embed = MessageModule.GenerateEmbedResponse(
+            embed = EmbedHandler.GenerateEmbedResponse(
                 "I made your Channel Pair, Yay! Order them wherever you like \uD83D\uDE42\r\n" +
                 "Make sure to not rename either of the channels or the role they are associated with",
                 Color.Green);
@@ -132,7 +133,7 @@
             Embed embed;
             if (!name.All(c => char.IsLetterOrDigit(c) || c == ' '))
             {
-                embed = MessageModule.GenerateEmbedResponse(
+                embed = EmbedHandler.GenerateEmbedResponse(
                     "The channel name you gave me contains funny characters \uD83D\uDE2E, that won't exist silly :P.\r\n" +
                     "\r\n" +
                     "It should use only alphanumeric characters and spaces.",
@@ -145,7 +146,7 @@
             var voiceChannelResults = this.Context.Guild.VoiceChannels.Where(x => x.Name == name).ToList();
             if (voiceChannelResults.Count > 1)
             {
-                embed = MessageModule.GenerateEmbedResponse(
+                embed = EmbedHandler.GenerateEmbedResponse(
                     "Oh no! I found multiple paired voice channels with that name\r\n" +
                     "Please try renaming the one you you meant to something unique and try again");
                 await this.ReplyAsync("", false, embed);
@@ -163,7 +164,7 @@
 
             await DynamoSystem.DeleteItemAsync(pairToRemove);
 
-            embed = MessageModule.GenerateEmbedResponse(
+            embed = EmbedHandler.GenerateEmbedResponse(
                 "I packed up the channel pair you gave me and sent it on it's way, so long! \uD83D\uDE22",
                 Color.Green);
 
@@ -179,7 +180,7 @@
         {
             await DynamoSystem.DeleteItemAsync<ChannelPair>(guid);
 
-            var embed = MessageModule.GenerateEmbedResponse(
+            var embed = EmbedHandler.GenerateEmbedResponse(
                 "I threw out my info on the channel pair you gave me, my feature will no longer work on it! \uD83D\uDE22",
                 Color.Green);
 
