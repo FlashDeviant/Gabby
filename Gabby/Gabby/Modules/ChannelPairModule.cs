@@ -13,7 +13,7 @@
 
     [Name("Channel Pairs")]
     [UsedImplicitly]
-    public sealed class ChannelModule : ModuleBase<SocketCommandContext>
+    public sealed class ChannelPairModule : ModuleBase<SocketCommandContext>
     {
         /// <exception cref="T:System.InvalidOperationException">
         ///     No element satisfies the condition in <paramref name="predicate">predicate</paramref>.

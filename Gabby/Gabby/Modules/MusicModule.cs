@@ -370,9 +370,8 @@
                     ThumbnailUrl = artwork,
                     Url = track.Url
                 }
-                .AddField("Id", track.Id)
-                .AddField("Duration", track.Duration)
-                .AddField("Position", track.Position);
+                .AddField("Duration", track.Duration.ToString("MM:ss"))
+                .AddField("Position", track.Position.ToString("MM:ss"));
 
             await this.ReplyAsync(embed: embed.Build());
         }
