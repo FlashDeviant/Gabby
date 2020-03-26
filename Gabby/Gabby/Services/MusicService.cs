@@ -4,6 +4,7 @@ namespace Gabby.Services
     using System.Threading.Tasks;
     using Discord;
     using Discord.WebSocket;
+    using Gabby.Handlers;
     using JetBrains.Annotations;
     using Victoria;
     using Victoria.EventArgs;
@@ -58,19 +59,18 @@ namespace Gabby.Services
             var player = args.Player;
             if (!player.Queue.TryDequeue(out var queueable))
             {
-                await player.TextChannel.SendMessageAsync("No more tracks to play.");
+                await player.TextChannel.SendMessageAsync("", false, EmbedHandler.GenerateEmbedResponse("No more tracks to play."));
                 return;
             }
 
             if (!(queueable is LavaTrack track))
             {
-                await player.TextChannel.SendMessageAsync("Next item in queue is not a track.");
+                await player.TextChannel.SendMessageAsync("", false, EmbedHandler.GenerateEmbedResponse("Next item in queue is not a track."));
                 return;
             }
 
             await args.Player.PlayAsync(track);
-            await args.Player.TextChannel.SendMessageAsync(
-                $"{args.Reason}: {args.Track.Title}\nNow playing: {track.Title}");
+            await args.Player.TextChannel.SendMessageAsync("", false, EmbedHandler.GenerateEmbedResponse($"{args.Reason}: {args.Track.Title}\nNow playing: {track.Title}"));
         }
 
         private Task OnTrackException(TrackExceptionEventArgs arg)
