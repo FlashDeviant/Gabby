@@ -88,7 +88,8 @@ namespace Gabby.Services
 
             var embed = new EmbedBuilder
                 {
-                    Title = $"{track.Title} - {track.Author}",
+                    Title = track.Title,
+                    Description = track.Author,
                     ThumbnailUrl = artwork,
                     Url = track.Url,
                     Author = new EmbedAuthorBuilder

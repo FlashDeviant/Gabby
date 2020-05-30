@@ -400,7 +400,8 @@ namespace Gabby.Modules
                     {
                         Name = "Now Playing!"
                     },
-                    Title = $"{track.Author} - {track.Title}",
+                    Title = track.Title,
+                    Description = track.Author,
                     ThumbnailUrl = artwork,
                     Url = track.Url,
                     Footer = new EmbedFooterBuilder
