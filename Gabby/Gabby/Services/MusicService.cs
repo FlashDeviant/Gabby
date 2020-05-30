@@ -81,7 +81,7 @@ namespace Gabby.Services
             }
 
             await args.Player.PlayAsync(track);
-            await args.Player.TextChannel.SendMessageAsync("", false, EmbedHandler.GenerateEmbedResponse($"{args.Reason}: {args.Track.Title}\nNow playing: {track.Title}"));
+
             var artwork = await track.FetchArtworkAsync();
 
             var requestingUser = MusicTrackQueues.Single(x => x.GuildId == args.Player.VoiceChannel.GuildId).QueuedItems.First().RequestingUser;
@@ -101,9 +101,13 @@ namespace Gabby.Services
                         Text =
                             $"This track was requested by {requestingUser.Username}#{requestingUser.Discriminator}",
                         IconUrl = requestingUser.GetAvatarUrl()
-                    }
+                    },
+                    Color = Color.Green
                 }
                 .AddField("Duration", $@"{track.Duration:mm\:ss}");
+
+            //await args.Player.TextChannel.SendMessageAsync("", false, EmbedHandler.GenerateEmbedResponse($"{args.Reason}: {args.Track.Title}\nNow playing: {track.Title}"));
+            await args.Player.TextChannel.SendMessageAsync("", false, embed.Build());
         }
 
         private Task OnTrackException(TrackExceptionEventArgs arg)
