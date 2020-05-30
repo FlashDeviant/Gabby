@@ -98,7 +98,7 @@ namespace Gabby.Services
                     Footer = new EmbedFooterBuilder
                     {
                         Text =
-                            $"Next track was requested by {requestingUser.Username}#{requestingUser.Discriminator}",
+                            $"This track was requested by {requestingUser.Username}#{requestingUser.Discriminator}",
                         IconUrl = requestingUser.GetAvatarUrl()
                     }
                 }
