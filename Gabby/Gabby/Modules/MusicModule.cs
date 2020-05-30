@@ -515,13 +515,33 @@ namespace Gabby.Modules
                 return;
             }
 
-            var response = player.Queue.ToList().Cast<LavaTrack>()
-                .Aggregate(string.Empty,
-                    (current, queueItem) =>
-                        current +
-                        $"{queueItem.Title} - {queueItem.Author}{Environment.NewLine}Requested by: {_musicService.MusicTrackQueues.Single(x => x.GuildId == this.Context.Guild.Id).QueuedItems.Single(x => x.Track.Id == queueItem.Id).RequestingUser.Username}{Environment.NewLine}{queueItem.Url}{Environment.NewLine}{Environment.NewLine}");
+            var embed = new EmbedBuilder
+            {
+                Author = new EmbedAuthorBuilder
+                {
+                    Name = "Queued Tracks (next 10)"
+                },
+                Footer = new EmbedFooterBuilder
+                {
+                    Text =
+                        $"There is a total of {_musicService.MusicTrackQueues.Single(x => x.GuildId == this.Context.Guild.Id).QueuedItems.Count} songs in the queue",
+                    IconUrl = this.Context.Client.CurrentUser.GetAvatarUrl()
+                },
+                Color = Color.Green
+            };
 
-            await this.ReplyAsync("", false, EmbedHandler.GenerateEmbedResponse(response));
+            foreach (var queuedItem in _musicService.MusicTrackQueues.Single(x => x.GuildId == this.Context.Guild.Id).QueuedItems)
+            {
+                embed.Fields.Add(new EmbedFieldBuilder
+                {
+                    IsInline = false,
+                    Name = $"[{queuedItem.Track.Title} - {queuedItem.Track.Author}]{queuedItem.Track.Url}",
+                    Value =
+                        $"Requested by {queuedItem.RequestingUser.Username}#{queuedItem.RequestingUser.Discriminator}"
+                });
+            }
+
+            await this.ReplyAsync("", false, embed.Build());
         }
     }
 }
