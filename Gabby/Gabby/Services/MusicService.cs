@@ -18,8 +18,6 @@ namespace Gabby.Services
         private readonly LavaNode _lavaNode;
         private readonly LoggingService _logger;
 
-        private string _avatarUrl;
-        
         internal readonly HashSet<ulong> VoteQueue;
 
         public List<GuildTrackQueue> MusicTrackQueues;
@@ -27,7 +25,6 @@ namespace Gabby.Services
         public MusicService([NotNull] DiscordSocketClient socketClient, LavaNode lavaNode, LoggingService logger)
         {
             socketClient.Ready += this.OnReady;
-            _avatarUrl = socketClient.CurrentUser.GetAvatarUrl();
             MusicTrackQueues = new List<GuildTrackQueue>();
             this._lavaNode = lavaNode;
             this._logger = logger;
