@@ -1,4 +1,6 @@
-﻿namespace Gabby.Modules
+﻿using Victoria.Interfaces;
+
+namespace Gabby.Modules
 {
     using System;
     using System.Collections.Generic;
@@ -296,7 +298,7 @@
         [UsedImplicitly]
         [Command("Seek")]
         [Summary("The bot will seek to the chosen time of the currently playing track")]
-        public async Task SeekAsync(TimeSpan timeSpan)
+        public async Task SeekAsync([Remainder] string time)
         {
             if (!this._lavaNode.TryGetPlayer(this.Context.Guild, out var player))
             {
@@ -310,15 +312,10 @@
                 return;
             }
 
-            try
-            {
-                await player.SeekAsync(timeSpan);
-                await this.ReplyAsync("", false, EmbedHandler.GenerateEmbedResponse($"I've seeked `{player.Track.Title}` to {timeSpan}."));
-            }
-            catch (Exception exception)
-            {
-                await this.ReplyAsync(exception.Message);
-            }
+
+            var timeSpan = TimeSpan.Parse(time);
+            await player.SeekAsync(timeSpan);
+            await this.ReplyAsync("", false, EmbedHandler.GenerateEmbedResponse($"I've seeked `{player.Track.Title}` to {timeSpan}."));
         }
 
         [UsedImplicitly]
@@ -370,8 +367,8 @@
                     ThumbnailUrl = artwork,
                     Url = track.Url
                 }
-                .AddField("Duration", track.Duration.ToString("MM:ss"))
-                .AddField("Position", track.Position.ToString("MM:ss"));
+                .AddField("Duration", $@"{track.Duration:mm\:ss}")
+                .AddField("Position", $@"{track.Position:mm\:ss}");
 
             await this.ReplyAsync(embed: embed.Build());
         }
@@ -456,6 +453,29 @@
                 }
 
             await this.ReplyAsync("", false, EmbedHandler.GenerateEmbedResponse($"```{stringBuilder}```"));
+        }
+
+        [UsedImplicitly]
+        [Command("ExportPlaylist")]
+        [Summary("Exports the next 10 songs in the queue to a message")]
+        public async Task ExportQueue()
+        {
+            if (!this._lavaNode.TryGetPlayer(this.Context.Guild, out var player))
+            {
+                await this.ReplyAsync("", false, EmbedHandler.GenerateEmbedResponse("I'm not connected to a voice channel."));
+                return;
+            }
+
+            if (player.Queue.Count == 0)
+            {
+                await this.ReplyAsync("", false, EmbedHandler.GenerateEmbedResponse("There is nothing queued to play right now."));
+                return;
+            }
+
+            var response = player.Queue.ToList().Cast<LavaTrack>().Aggregate(string.Empty,
+                (current, queueItem) => current + $"{queueItem.Title} {Environment.NewLine}");
+
+            await this.ReplyAsync("", false, EmbedHandler.GenerateEmbedResponse(response));
         }
     }
 }

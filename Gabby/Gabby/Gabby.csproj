@@ -12,10 +12,10 @@
     <PackageReference Include="AWSSDK.DynamoDBv2" Version="3.3.105.15" />
     <PackageReference Include="AWSSDK.Extensions.NETCore.Setup" Version="3.3.101" />
     <PackageReference Include="Discord.Net" Version="2.1.1" />
-    <PackageReference Include="JetBrains.Annotations" Version="2020.1.0-eap6" />
+    <PackageReference Include="JetBrains.Annotations" Version="2020.1.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="2.2.0" />
     <PackageReference Include="NetEscapades.Configuration.Yaml" Version="1.6.0" />
-    <PackageReference Include="Victoria" Version="5.1.2" />
+    <PackageReference Include="Victoria" Version="5.1.6" />
   </ItemGroup>
 
   <ItemGroup>

@@ -7,6 +7,7 @@ namespace Gabby.Handlers
     using Gabby.Modules;
     using JetBrains.Annotations;
 
+    [UsedImplicitly]
     internal class EmbedHandler
     {
         internal static Embed GenerateEmbedResponse(string message)
