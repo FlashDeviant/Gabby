@@ -82,7 +82,7 @@
             var textChannel = await this.Context.Guild.CreateTextChannelAsync(textChannelName).ConfigureAwait(false);
             var voiceChannel = await this.Context.Guild.CreateVoiceChannelAsync(name.Trim()).ConfigureAwait(false);
 
-            var newRole = await this.Context.Guild.CreateRoleAsync(name.Trim()).ConfigureAwait(false);
+            var newRole = await this.Context.Guild.CreateRoleAsync(name.Trim(), GuildPermissions.None, Color.Default, false, false).ConfigureAwait(false);
             var everyoneRole =
                 this.Context.Guild.GetRole(this.Context.Guild.Roles.First(x => x.Name == "@everyone").Id);
 
