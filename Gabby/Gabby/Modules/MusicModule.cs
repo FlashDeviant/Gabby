@@ -163,6 +163,8 @@ namespace Gabby.Modules
             else
             {
                 await player.PlayAsync(track);
+                _musicService.MusicTrackQueues.Single(x => x.GuildId == this.Context.Guild.Id).QueuedItems
+                    .Add(new QueuedItem(track, this.Context.User));
                 await this.ReplyAsync("", false, EmbedHandler.GenerateEmbedResponse($"Now Playing: {track.Title}"));
             }
         }
@@ -403,7 +405,7 @@ namespace Gabby.Modules
                     Url = track.Url,
                     Footer = new EmbedFooterBuilder
                     {
-                        Text = $"Next track was requested by {requestingUser.Username}#{requestingUser.DiscriminatorValue}",
+                        Text = $"This track was requested by {requestingUser.Username}#{requestingUser.Discriminator}",
                         IconUrl = requestingUser.GetAvatarUrl()
                     }
                 }
