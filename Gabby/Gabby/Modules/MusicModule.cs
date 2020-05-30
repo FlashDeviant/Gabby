@@ -32,9 +32,15 @@ namespace Gabby.Modules
 
         [UsedImplicitly]
         [Command("Join")]
-        [Summary("The bot will join the channel the user is connected to")]
-        public async Task JoinAsync()
+        [Summary("The bot will join the channel the user is connected to, you can also set the volume too")]
+        public async Task JoinAsync(ushort volume = 100)
         {
+            if (volume > 100 || volume < 1)
+            {
+                await this.ReplyAsync("", false, EmbedHandler.GenerateEmbedResponse("Sorry, I can't work out how loud you want me to be, try a number between 1 and 100", Color.Red));
+                return;
+            }
+
             if (this._lavaNode.HasPlayer(this.Context.Guild))
             {
                 await this.ReplyAsync("", false, EmbedHandler.GenerateEmbedResponse("I'm already connected to a voice channel!", Color.Orange));
@@ -50,7 +56,9 @@ namespace Gabby.Modules
             }
 
             await this._lavaNode.JoinAsync(voiceState.VoiceChannel, this.Context.Channel as ITextChannel);
-            await this.ReplyAsync("", false, EmbedHandler.GenerateEmbedResponse($"Joined {voiceState.VoiceChannel.Name}"));
+            this._lavaNode.TryGetPlayer(this.Context.Guild, out var player);
+            await player.UpdateVolumeAsync(volume);
+            await this.ReplyAsync("", false, EmbedHandler.GenerateEmbedResponse($"Joined {voiceState.VoiceChannel.Name}, my volume is {volume}%"));
         }
 
         [UsedImplicitly]
