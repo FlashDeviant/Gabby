@@ -1,4 +1,5 @@
-﻿using Victoria.Interfaces;
+﻿using Gabby.Models;
+using Victoria.Interfaces;
 
 namespace Gabby.Modules
 {
@@ -56,6 +57,10 @@ namespace Gabby.Modules
             }
 
             await this._lavaNode.JoinAsync(voiceState.VoiceChannel, this.Context.Channel as ITextChannel);
+
+            if (_musicService.MusicTrackQueues.All(x => x.GuildId != this.Context.Guild.Id))
+                _musicService.MusicTrackQueues.Add(new GuildTrackQueue(this.Context.Guild.Id));
+
             //this._lavaNode.TryGetPlayer(this.Context.Guild, out var player);
             //await player.UpdateVolumeAsync(volume);
             await this.ReplyAsync("", false, EmbedHandler.GenerateEmbedResponse($"Joined {voiceState.VoiceChannel.Name}, my volume is {volume}"));
@@ -111,7 +116,12 @@ namespace Gabby.Modules
         {
             if (!string.IsNullOrWhiteSpace(searchResponse.Playlist.Name))
             {
-                foreach (var track in searchResponse.Tracks) player.Queue.Enqueue(track);
+                foreach (var track in searchResponse.Tracks)
+                {
+                    player.Queue.Enqueue(track);
+                    _musicService.MusicTrackQueues.Single(x => x.GuildId == this.Context.Guild.Id).QueuedItems
+                        .Add(new QueuedItem(track, this.Context.User));
+                }
 
                 await this.ReplyAsync("", false, EmbedHandler.GenerateEmbedResponse($"Enqueued {searchResponse.Tracks.Count} tracks."));
             }
@@ -119,6 +129,8 @@ namespace Gabby.Modules
             {
                 var track = searchResponse.Tracks[0];
                 player.Queue.Enqueue(track);
+                _musicService.MusicTrackQueues.Single(x => x.GuildId == this.Context.Guild.Id).QueuedItems
+                    .Add(new QueuedItem(track, this.Context.User));
                 await this.ReplyAsync("", false, EmbedHandler.GenerateEmbedResponse($"Enqueued: {track.Title}"));
             }
         }
@@ -134,11 +146,15 @@ namespace Gabby.Modules
                     if (i == 0)
                     {
                         await player.PlayAsync(track);
+                        _musicService.MusicTrackQueues.Single(x => x.GuildId == this.Context.Guild.Id).QueuedItems
+                            .Add(new QueuedItem(track, this.Context.User));
                         await this.ReplyAsync("", false, EmbedHandler.GenerateEmbedResponse($"Now Playing: {track.Title}"));
                     }
                     else
                     {
                         player.Queue.Enqueue(searchResponse.Tracks[i]);
+                        _musicService.MusicTrackQueues.Single(x => x.GuildId == this.Context.Guild.Id).QueuedItems
+                            .Add(new QueuedItem(searchResponse.Tracks[i], this.Context.User));
                     }
                 }
 
@@ -294,8 +310,12 @@ namespace Gabby.Modules
             try
             {
                 var oldTrack = player.Track;
-                var currenTrack = await player.SkipAsync();
-                await this.ReplyAsync("", false, EmbedHandler.GenerateEmbedResponse($"Skipped: {oldTrack.Title}\nNow Playing: {currenTrack.Title}"));
+                var currentTrack = await player.SkipAsync();
+
+                _musicService.MusicTrackQueues.Single(x => x.GuildId == this.Context.Guild.Id).QueuedItems
+                    .RemoveAll(x => x.Track.Id == oldTrack.Id);
+
+                await this.ReplyAsync("", false, EmbedHandler.GenerateEmbedResponse($"Skipped: {oldTrack.Title}\nNow Playing: {currentTrack.Title}"));
             }
             catch (Exception exception)
             {
@@ -369,11 +389,23 @@ namespace Gabby.Modules
             var track = player.Track;
             var artwork = await track.FetchArtworkAsync();
 
+            var requestingUser = _musicService.MusicTrackQueues.Single(x => x.GuildId == this.Context.Guild.Id)
+                .QueuedItems.First().RequestingUser;
+
             var embed = new EmbedBuilder
                 {
+                    Author = new EmbedAuthorBuilder
+                    {
+                        Name = "Now Playing!"
+                    },
                     Title = $"{track.Author} - {track.Title}",
                     ThumbnailUrl = artwork,
-                    Url = track.Url
+                    Url = track.Url,
+                    Footer = new EmbedFooterBuilder
+                    {
+                        Text = $"Next track was requested by {requestingUser.Username}#{requestingUser.DiscriminatorValue}",
+                        IconUrl = requestingUser.GetAvatarUrl()
+                    }
                 }
                 .AddField("Duration", $@"{track.Duration:mm\:ss}")
                 .AddField("Position", $@"{track.Position:mm\:ss}");
@@ -464,8 +496,8 @@ namespace Gabby.Modules
         }
 
         [UsedImplicitly]
-        [Command("ExportPlaylist")]
-        [Summary("Exports the next 10 songs in the queue to a message")]
+        [Command("Queue")]
+        [Summary("Displays the next 10 songs in the queue")]
         public async Task ExportQueue()
         {
             if (!this._lavaNode.TryGetPlayer(this.Context.Guild, out var player))
@@ -480,8 +512,11 @@ namespace Gabby.Modules
                 return;
             }
 
-            var response = player.Queue.ToList().Cast<LavaTrack>().Aggregate(string.Empty,
-                (current, queueItem) => current + $"{queueItem.Title} {Environment.NewLine}");
+            var response = player.Queue.ToList().Cast<LavaTrack>()
+                .Aggregate(string.Empty,
+                    (current, queueItem) =>
+                        current +
+                        $"{queueItem.Title} - {queueItem.Author}{Environment.NewLine}Requested by: {_musicService.MusicTrackQueues.Single(x => x.GuildId == this.Context.Guild.Id).QueuedItems.Single(x => x.Track.Id == queueItem.Id).RequestingUser.Username}{Environment.NewLine}{queueItem.Url}{Environment.NewLine}{Environment.NewLine}");
 
             await this.ReplyAsync("", false, EmbedHandler.GenerateEmbedResponse(response));
         }

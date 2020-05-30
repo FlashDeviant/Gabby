@@ -1,3 +1,7 @@
+using System;
+using System.Linq;
+using Gabby.Models;
+
 namespace Gabby.Services
 {
     using System.Collections.Generic;
@@ -14,11 +18,17 @@ namespace Gabby.Services
         private readonly LavaNode _lavaNode;
         private readonly LoggingService _logger;
 
+        private string _avatarUrl;
+        
         internal readonly HashSet<ulong> VoteQueue;
+
+        public List<GuildTrackQueue> MusicTrackQueues;
 
         public MusicService([NotNull] DiscordSocketClient socketClient, LavaNode lavaNode, LoggingService logger)
         {
             socketClient.Ready += this.OnReady;
+            _avatarUrl = socketClient.CurrentUser.GetAvatarUrl();
+            MusicTrackQueues = new List<GuildTrackQueue>();
             this._lavaNode = lavaNode;
             this._logger = logger;
             this._lavaNode.OnLog += this.OnLog;
@@ -41,13 +51,13 @@ namespace Gabby.Services
 
         private Task OnPlayerUpdated(PlayerUpdateEventArgs arg)
         {
-            this._logger.LogInfo($"Player update received for {arg.Player.VoiceChannel.Name}.");
+            this._logger.LogDebug($"Player update received for {arg.Player.VoiceChannel.Name}.");
             return Task.CompletedTask;
         }
 
         private Task OnStatsReceived([NotNull] StatsEventArgs arg)
         {
-            this._logger.LogInfo($"Lavalink Uptime {arg.Uptime}.");
+            this._logger.LogDebug($"Lavalink Uptime {arg.Uptime}.");
             return Task.CompletedTask;
         }
 
@@ -57,6 +67,10 @@ namespace Gabby.Services
                 return;
 
             var player = args.Player;
+
+            MusicTrackQueues.Single(x => x.GuildId == args.Player.VoiceChannel.GuildId).QueuedItems
+                .RemoveAll(x => x.Track.Id == args.Track.Id);
+
             if (!player.Queue.TryDequeue(out var queueable))
             {
                 await player.TextChannel.SendMessageAsync("", false, EmbedHandler.GenerateEmbedResponse("No more tracks to play."));
@@ -71,6 +85,27 @@ namespace Gabby.Services
 
             await args.Player.PlayAsync(track);
             await args.Player.TextChannel.SendMessageAsync("", false, EmbedHandler.GenerateEmbedResponse($"{args.Reason}: {args.Track.Title}\nNow playing: {track.Title}"));
+            var artwork = await track.FetchArtworkAsync();
+
+            var requestingUser = MusicTrackQueues.Single(x => x.GuildId == args.Player.VoiceChannel.GuildId).QueuedItems.First().RequestingUser;
+
+            var embed = new EmbedBuilder
+                {
+                    Title = $"{track.Title} - {track.Author}",
+                    ThumbnailUrl = artwork,
+                    Url = track.Url,
+                    Author = new EmbedAuthorBuilder
+                    {
+                        Name = "Next Up!"
+                    },
+                    Footer = new EmbedFooterBuilder
+                    {
+                        Text =
+                            $"Next track was requested by {requestingUser.Username}#{requestingUser.DiscriminatorValue}",
+                        IconUrl = requestingUser.GetAvatarUrl()
+                    }
+                }
+                .AddField("Duration", $@"{track.Duration:mm\:ss}");
         }
 
         private Task OnTrackException(TrackExceptionEventArgs arg)

@@ -48,6 +48,17 @@
             return Console.Out.WriteLineAsync(logText); // Write the log text to the console
         }
 
+        internal Task LogDebug(string msg)
+        {
+            this.LogDirectoryCheck();
+
+            var logText =
+                $"{DateTime.UtcNow:hh:mm:ss} [{LogSeverity.Debug.ToString()}] {MethodBase.GetCurrentMethod()} {msg}";
+            File.AppendAllText(this.LogFile, logText + "\n"); // Write the log text to a file
+
+            return Console.Out.WriteLineAsync(logText);
+        }
+
         internal Task LogInfo(string msg)
         {
             this.LogDirectoryCheck();
