@@ -55,10 +55,10 @@ namespace Gabby.Modules
                 return;
             }
 
-            //await this._lavaNode.JoinAsync(voiceState.VoiceChannel, this.Context.Channel as ITextChannel);
+            await this._lavaNode.JoinAsync(voiceState.VoiceChannel, this.Context.Channel as ITextChannel);
             //this._lavaNode.TryGetPlayer(this.Context.Guild, out var player);
             //await player.UpdateVolumeAsync(volume);
-            await this.ReplyAsync("", false, EmbedHandler.GenerateEmbedResponse($"Joined {voiceState.VoiceChannel.Name}, my volume is {volume}%"));
+            await this.ReplyAsync("", false, EmbedHandler.GenerateEmbedResponse($"Joined {voiceState.VoiceChannel.Name}, my volume is {volume}"));
         }
 
         [UsedImplicitly]
