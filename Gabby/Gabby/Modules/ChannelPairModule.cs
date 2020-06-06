@@ -148,7 +148,7 @@
             {
                 embed = EmbedHandler.GenerateEmbedResponse(
                     "Oh no! I found multiple paired voice channels with that name\r\n" +
-                    "Please try renaming the one you you meant to something unique and try again");
+                    "Please try renaming the one you meant to something unique and try again");
                 await this.ReplyAsync("", false, embed);
                 return;
             }
