@@ -11,8 +11,8 @@ namespace Gabby.Modules
     using Discord;
     using Discord.Commands;
     using Discord.WebSocket;
-    using Gabby.Handlers;
-    using Gabby.Services;
+    using Handlers;
+    using Services;
     using JetBrains.Annotations;
     using Victoria;
     using Victoria.Enums;
@@ -377,6 +377,7 @@ namespace Gabby.Modules
 
         [UsedImplicitly]
         [Command("Volume")]
+        [Alias("Vol")]
         [Summary("The bot will adjust the volume to the selected amount")]
         public async Task VolumeAsync(ushort volume)
         {
