@@ -1,4 +1,4 @@
-using Gabby.Models;
+﻿using Gabby.Models;
 using Victoria.Interfaces;
 
 namespace Gabby.Modules
@@ -131,7 +131,7 @@ namespace Gabby.Modules
                 player.Queue.Enqueue(track);
                 _musicService.MusicTrackQueues.Single(x => x.GuildId == this.Context.Guild.Id).QueuedItems
                     .Add(new QueuedItem(track, this.Context.User));
-                await this.ReplyAsync("", false, EmbedHandler.GenerateEmbedResponse($"Enqueued: {track.Title}"));
+                await this.ReplyAsync("", false, (await ProduceNowPlayingEmbed(track, this.Context.User)).Build());
             }
         }
 
@@ -416,12 +416,18 @@ namespace Gabby.Modules
             }
 
             var track = player.Track;
-            var artwork = await track.FetchArtworkAsync();
 
             var requestingUser = _musicService.MusicTrackQueues.Single(x => x.GuildId == this.Context.Guild.Id)
                 .QueuedItems.First().RequestingUser;
 
-            var embed = new EmbedBuilder
+            var embed = await ProduceNowPlayingEmbed(track, requestingUser);
+
+            await this.ReplyAsync(embed: embed.Build());
+        }
+
+        private async Task<EmbedBuilder> ProduceNowPlayingEmbed(LavaTrack track, SocketUser requestingUser)
+        {
+            return new EmbedBuilder
                 {
                     Author = new EmbedAuthorBuilder
                     {
@@ -429,7 +435,7 @@ namespace Gabby.Modules
                     },
                     Title = track.Title,
                     Description = track.Author,
-                    ThumbnailUrl = artwork,
+                    ThumbnailUrl = await track.FetchArtworkAsync(),
                     Url = track.Url,
                     Footer = new EmbedFooterBuilder
                     {
@@ -439,8 +445,6 @@ namespace Gabby.Modules
                 }
                 .AddField("Duration", $@"{track.Duration:mm\:ss}")
                 .AddField("Position", $@"{track.Position:mm\:ss}");
-
-            await this.ReplyAsync(embed: embed.Build());
         }
 
         [UsedImplicitly]
@@ -566,6 +570,8 @@ namespace Gabby.Modules
                     Value =
                         $"Requested by {queuedItem.RequestingUser.Username}#{queuedItem.RequestingUser.Discriminator}"
                 });
+
+                if (embed.Fields.Count == 10) break;
             }
 
             await this.ReplyAsync("", false, embed.Build());
