@@ -1,4 +1,4 @@
-﻿using Gabby.Models;
+using Gabby.Models;
 using Victoria.Interfaces;
 
 namespace Gabby.Modules
@@ -322,6 +322,33 @@ namespace Gabby.Modules
             catch (Exception exception)
             {
                 await this.ReplyAsync(exception.Message);
+            }
+        }
+
+        [UsedImplicitly]
+        [Command("remove")]
+        public async Task DeleteFromQueue(int selection1, int selection2 = 0)
+        {
+            if (!this._lavaNode.TryGetPlayer(this.Context.Guild, out var player))
+            {
+                await this.ReplyAsync("", false, EmbedHandler.GenerateEmbedResponse("I'm not connected to a voice channel."));
+                return;
+            }
+            if (selection2 == 0)
+            {
+                var track = (LavaTrack) player.Queue.ElementAt(selection1 - 1);
+
+                _musicService.MusicTrackQueues.Single(x => x.GuildId == this.Context.Guild.Id).QueuedItems
+                    .RemoveAll(x => x.Track.Id == track.Id);
+
+                player.Queue.RemoveAt(selection1 - 1);
+
+                await this.ReplyAsync("", false, EmbedHandler.GenerateEmbedResponse($"Removed song {selection1} from the queue", Color.Green));
+            }
+            else
+            {
+                player.Queue.RemoveRange(selection1 - 1, selection2 - 2);
+                await this.ReplyAsync("", false, EmbedHandler.GenerateEmbedResponse($"Removed songs {selection1} to {selection2} from the queue", Color.Green));
             }
         }
 
