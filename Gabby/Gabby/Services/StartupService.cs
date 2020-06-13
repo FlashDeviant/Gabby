@@ -5,9 +5,10 @@
     using System.Linq;
     using System.Reflection;
     using System.Threading.Tasks;
-    using Discord;
-    using Discord.Commands;
-    using Discord.WebSocket;
+    using DSharpPlus;
+    using DSharpPlus.CommandsNext;
+    using DSharpPlus.Entities;
+    using DSharpPlus.EventArgs;
     using Gabby.Data;
     using Gabby.Handlers;
     using Gabby.Models;
@@ -16,26 +17,29 @@
 
     public sealed class StartupService
     {
-        private readonly CommandService _commands;
+        private readonly CommandsNextExtension _commands;
         private readonly IConfigurationRoot _config;
-        private readonly DiscordSocketClient _discord;
+        private readonly DiscordClient _discord;
         private readonly IServiceProvider _provider;
 
         // DiscordSocketClient, CommandService, and IConfigurationRoot are injected automatically from the IServiceProvider
         public StartupService(
             IServiceProvider provider,
-            DiscordSocketClient discord,
-            CommandService commands,
+            DiscordClient discord,
             IConfigurationRoot config)
         {
             this._provider = provider;
             this._config = config;
             this._discord = discord;
-            this._commands = commands;
+            this._commands = discord.UseCommandsNext(new CommandsNextConfiguration
+            {
+                Services = this._provider,
+                StringPrefixes = new[] {this._config["Prefix"]}
+            });
 
-            this._discord.Connected += this.OnConnected;
-            this._discord.JoinedGuild += OnJoiningGuild;
-            this._discord.LeftGuild += OnLeavingGuild;
+            this._discord.Ready += this.OnConnected;
+            this._discord.GuildCreated += OnJoiningGuild;
+            this._discord.GuildDeleted += OnLeavingGuild;
             this._discord.GuildUpdated += OnGuildUpdate;
         }
 
@@ -45,25 +49,23 @@
         /// </exception>
         internal async Task StartAsync()
         {
-            var discordToken = this._config["Tokens:Discord"]; // Get the discord token from the config file
-            if (string.IsNullOrWhiteSpace(discordToken))
-                throw new Exception(
-                    "Please enter your bot's token into the `_config.yml` file found in the applications root directory.");
+            // var discordToken = this._config["Tokens:Discord"]; // Get the discord token from the config file
+            // if (string.IsNullOrWhiteSpace(discordToken))
+            //     throw new Exception(
+            //         "Please enter your bot's token into the `_config.yml` file found in the applications root directory.");
 
-            await this._discord.LoginAsync(TokenType.Bot, discordToken).ConfigureAwait(false); // Login to discord
-            await this._discord.StartAsync().ConfigureAwait(false); // Connect to the websocket
-            await this._discord.SetActivityAsync(new Game("with all my friends")).ConfigureAwait(false);
-            await this._commands.AddModulesAsync(Assembly.GetEntryAssembly(), this._provider)
-                .ConfigureAwait(false); // Load commands and modules into the command service
+            await this._discord.ConnectAsync().ConfigureAwait(false); // Login to discord
+            await this._discord.UpdateStatusAsync(new DiscordActivity("with all my friends", ActivityType.Playing)).ConfigureAwait(false);
+            this._commands.RegisterCommands(Assembly.GetEntryAssembly());
         }
 
-        private async Task OnConnected()
+        private async Task OnConnected(ReadyEventArgs readyEventArgs)
         {
             var recordedGuilds = await DynamoSystem.ScanItemAsync<GuildInfo>();
             var guildsToUpdate = new List<GuildInfo>();
             foreach (var rGuild in recordedGuilds)
             {
-                var match = this._discord.Guilds.SingleOrDefault(x => x.Id.ToString() == rGuild.GuildGuid);
+                var match = this._discord.Guilds.SingleOrDefault(x => x.Value.Id.ToString() == rGuild.GuildGuid).Value;
                 if (match == null)
                 {
                     await DynamoSystem.DeleteItemAsync(rGuild);
@@ -77,12 +79,12 @@
             foreach (var uGuild in guildsToUpdate) await DynamoSystem.UpdateItemAsync(uGuild);
         }
 
-        private static async Task OnJoiningGuild([NotNull] SocketGuild arg)
+        private static async Task OnJoiningGuild([NotNull] GuildCreateEventArgs arg)
         {
             var item = new GuildInfo
             {
-                GuildGuid = arg.Id.ToString(),
-                GuildName = arg.Name
+                GuildGuid = arg.Guild.Id.ToString(),
+                GuildName = arg.Guild.Name
             };
 
             await DynamoSystem.PutItemAsync(item).ConfigureAwait(false);
@@ -90,27 +92,30 @@
             var embed = EmbedHandler.GenerateEmbedResponse(
                 "Hey friends! Nice to meet you!\r\n" +
                 "Type `!help` to get to know me more and find out what I can do!");
-            await arg.DefaultChannel.SendMessageAsync("", false, embed);
+            await arg.Guild.GetDefaultChannel().SendMessageAsync("", false, embed);
         }
 
-        private async Task OnLeavingGuild([NotNull] SocketGuild arg)
+        private async Task OnLeavingGuild([NotNull] GuildDeleteEventArgs arg)
         {
             var guild = new GuildInfo
             {
-                GuildGuid = arg.Id.ToString(),
-                GuildName = arg.Name
+                GuildGuid = arg.Guild.Id.ToString(),
+                GuildName = arg.Guild.Name
             };
 
             await DynamoSystem.DeleteItemAsync(guild);
         }
 
-        private async Task OnGuildUpdate(SocketGuild arg1, SocketGuild arg2)
+        private async Task OnGuildUpdate([NotNull] GuildUpdateEventArgs arg)
         {
-            var guildInfo = await DynamoSystem.GetItemAsync<GuildInfo>(arg1.Id);
+            var guildInfo = await DynamoSystem.GetItemAsync<GuildInfo>(arg.GuildBefore.Id);
 
-            guildInfo.GuildName = arg2.Name;
+            if (guildInfo != null)
+            {
+                guildInfo.GuildName = arg.GuildAfter.Name;
 
-            await DynamoSystem.UpdateItemAsync(guildInfo);
+                await DynamoSystem.UpdateItemAsync(guildInfo);
+            }
         }
     }
 }
