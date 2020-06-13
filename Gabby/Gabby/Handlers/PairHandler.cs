@@ -1,29 +1,28 @@
 ﻿namespace Gabby.Handlers
 {
     using System.Threading.Tasks;
-    using Discord.WebSocket;
-    using Gabby.Modules;
+    using DSharpPlus;
+    using DSharpPlus.EventArgs;
     using Gabby.Services;
     using JetBrains.Annotations;
 
     public sealed class PairHandler
     {
-        private readonly DiscordSocketClient _discord;
+        private readonly DiscordClient _discord;
 
         public PairHandler(
-            DiscordSocketClient discord)
+            DiscordClient discord)
         {
             this._discord = discord;
 
-            this._discord.UserVoiceStateUpdated += this.OnUserVoiceStateUpdatedAsync;
+            this._discord.VoiceStateUpdated += this.OnUserVoiceStateUpdatedAsync;
         }
 
-        private async Task OnUserVoiceStateUpdatedAsync([NotNull] SocketUser user, SocketVoiceState oldVoiceState,
-            SocketVoiceState newVoiceState)
+        private async Task OnUserVoiceStateUpdatedAsync([NotNull] VoiceStateUpdateEventArgs args)
         {
-            if (user.Id == this._discord.CurrentUser.Id || (oldVoiceState.VoiceChannel == newVoiceState.VoiceChannel)) return;
+            if (args.User.Id == this._discord.CurrentUser.Id || (args.Before.Channel == args.After.Channel)) return;
 
-            await ChannelPairService.HandleChannelPair(user, oldVoiceState, newVoiceState, this._discord).ConfigureAwait(false);
+            await ChannelPairService.HandleChannelPair(args.User, args.Before, args.After, this._discord).ConfigureAwait(false);
         }
     }
 }

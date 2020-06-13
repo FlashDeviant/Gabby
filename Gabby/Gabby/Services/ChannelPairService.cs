@@ -2,52 +2,52 @@ namespace Gabby.Services
 {
     using System.Linq;
     using System.Threading.Tasks;
-    using Discord;
-    using Discord.WebSocket;
+    using DSharpPlus;
+    using DSharpPlus.Entities;
     using Gabby.Data;
     using Gabby.Handlers;
     using Gabby.Models;
     using JetBrains.Annotations;
 
-    public class ChannelPairService
+    internal class ChannelPairService
     {
-        public static async Task HandleChannelPair([NotNull] SocketUser user, SocketVoiceState oldVoiceState,
-            SocketVoiceState newVoiceState, DiscordSocketClient discord)
+        public static async Task HandleChannelPair([NotNull] DiscordUser user, [NotNull] DiscordVoiceState oldVoiceState,
+            [NotNull] DiscordVoiceState newVoiceState, DiscordClient discord)
         {
-            var oldGuild = oldVoiceState.VoiceChannel?.Guild;
-            var newGuild = newVoiceState.VoiceChannel?.Guild;
+            var oldGuild = oldVoiceState.Channel?.Guild;
+            var newGuild = newVoiceState.Channel?.Guild;
 
-            var oldChannelGuid = oldVoiceState.VoiceChannel == null ? string.Empty : oldVoiceState.VoiceChannel.Id.ToString();
-            var newChannelGuid = newVoiceState.VoiceChannel == null ? string.Empty : newVoiceState.VoiceChannel.Id.ToString();
+            var oldChannelGuid = oldVoiceState.Channel == null ? string.Empty : oldVoiceState.Channel.Id.ToString();
+            var newChannelGuid = newVoiceState.Channel == null ? string.Empty : newVoiceState.Channel.Id.ToString();
 
             var oldPair = string.IsNullOrEmpty(oldChannelGuid) ? null : await DynamoSystem.GetItemAsync<ChannelPair>(oldChannelGuid);
             var newPair = string.IsNullOrEmpty(newChannelGuid) ? null : await DynamoSystem.GetItemAsync<ChannelPair>(newChannelGuid);
 
             if (oldPair == null && newPair == null) return;
 
-            var oldGuildUser = oldGuild?.GetUser(user.Id);
-            var newGuildUser = newGuild?.GetUser(user.Id);
+            var oldGuildUser = await oldGuild?.GetMemberAsync(user.Id);
+            var newGuildUser = await newGuild?.GetMemberAsync(user.Id);
 
             if (oldPair != null && oldGuild != null)
             {
-                var role = oldGuild?.Roles.SingleOrDefault(x => x.Id.ToString() == oldPair.RoleGuid);
-                if (role != null) await oldGuildUser.RemoveRoleAsync(role);
+                var role = oldGuild?.Roles.SingleOrDefault(x => x.Value.Id.ToString() == oldPair.RoleGuid).Value;
+                if (role != null) await oldGuildUser.RevokeRoleAsync(role);
                 var embed = EmbedHandler.GenerateEmbedResponse(
-                    $"\u274C {user.Username} has left {oldVoiceState.VoiceChannel?.Name}",
-                    Color.Red);
-                await oldGuild.TextChannels.Single(x => x.Id.ToString() == oldPair.TextChannelGuid)
-                    .SendMessageAsync("", false, embed);
+                    $"\u274C {user.Username} has left {oldVoiceState.Channel?.Name}",
+                    DiscordColor.Red);
+                await oldGuild.Channels.Single(x => x.Value.Id.ToString() == oldPair.TextChannelGuid)
+                    .Value.SendMessageAsync("", false, embed);
             }
 
             if (newPair != null && newGuild != null)
             {
-                var role = newGuild?.Roles.SingleOrDefault(x => x.Id.ToString() == newPair.RoleGuid);
-                if (role != null) await newGuildUser.AddRoleAsync(role);
+                var role = newGuild?.Roles.SingleOrDefault(x => x.Value.Id.ToString() == newPair.RoleGuid).Value;
+                if (role != null) await newGuildUser.GrantRoleAsync(role);
                 var embed = EmbedHandler.GenerateEmbedResponse(
-                    $"\u2705 {user.Username} has joined {newVoiceState.VoiceChannel?.Name}",
-                    Color.Green);
-                await newGuild.TextChannels.Single(x => x.Id.ToString() == newPair.TextChannelGuid)
-                    .SendMessageAsync("", false, embed);
+                    $"\u2705 {user.Username} has joined {newVoiceState.Channel?.Name}",
+                    DiscordColor.Green);
+                await newGuild.Channels.Single(x => x.Value.Id.ToString() == newPair.TextChannelGuid)
+                    .Value.SendMessageAsync("", false, embed);
             }
         }
     }
