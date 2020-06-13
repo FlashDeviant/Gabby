@@ -1,7 +1,8 @@
 ﻿namespace Gabby.Handlers
 {
     using System.Threading.Tasks;
-    using Discord.WebSocket;
+    using DSharpPlus;
+    using DSharpPlus.EventArgs;
     using Gabby.Data;
     using Gabby.Models;
     using JetBrains.Annotations;
@@ -10,43 +11,43 @@
     {
         public GuildHandler(
             // ReSharper disable once SuggestBaseTypeForParameter
-            [NotNull] DiscordSocketClient discord)
+            [NotNull] DiscordClient discord)
         {
-            discord.JoinedGuild += OnJoinedGuildAsync;
-            discord.LeftGuild += OnLeftGuildAsync;
+            discord.GuildCreated += OnJoinedGuildAsync;
+            discord.GuildDeleted += OnLeftGuildAsync;
             discord.GuildUpdated += OnGuildUpdatedAsync;
         }
 
-        private static async Task OnLeftGuildAsync([NotNull] SocketGuild arg)
+        private static async Task OnLeftGuildAsync([NotNull] GuildDeleteEventArgs args)
         {
-            var guild = await DynamoSystem.GetItemAsync<GuildInfo>(arg.Id).ConfigureAwait(false);
+            var guild = await DynamoSystem.GetItemAsync<GuildInfo>(args.Guild.Id).ConfigureAwait(false);
             if (guild == null) return;
 
             await DynamoSystem.DeleteItemAsync(guild).ConfigureAwait(false);
         }
 
-        private static async Task OnJoinedGuildAsync([NotNull] SocketGuild arg)
+        private static async Task OnJoinedGuildAsync([NotNull] GuildCreateEventArgs guildCreateEventArgs)
         {
-            var guild = await DynamoSystem.GetItemAsync<GuildInfo>(arg.Id).ConfigureAwait(false);
+            var guild = await DynamoSystem.GetItemAsync<GuildInfo>(guildCreateEventArgs.Guild.Id).ConfigureAwait(false);
             if (guild != null) return;
 
             guild = new GuildInfo
             {
-                GuildGuid = arg.Id.ToString(),
-                GuildName = arg.Name
+                GuildGuid = guildCreateEventArgs.Guild.Id.ToString(),
+                GuildName = guildCreateEventArgs.Guild.Name
             };
 
             await DynamoSystem.PutItemAsync(guild).ConfigureAwait(false);
         }
 
-        private static async Task OnGuildUpdatedAsync([NotNull] SocketGuild arg1, [NotNull] SocketGuild arg2)
+        private static async Task OnGuildUpdatedAsync([NotNull] GuildUpdateEventArgs args)
         {
-            var origGuildId = arg1.Id;
+            var origGuildId = args.GuildBefore.Id;
             var guild = await DynamoSystem.GetItemAsync<GuildInfo>(origGuildId).ConfigureAwait(false);
             if (guild != null)
             {
-                guild.GuildGuid = arg2.Id.ToString();
-                guild.GuildName = arg2.Name;
+                guild.GuildGuid = args.GuildAfter.Id.ToString();
+                guild.GuildName = args.GuildAfter.Name;
                 await DynamoSystem.UpdateItemAsync(guild).ConfigureAwait(false);
             }
         }
