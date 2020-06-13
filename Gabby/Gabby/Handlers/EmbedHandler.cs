@@ -1,29 +1,26 @@
 namespace Gabby.Handlers
 {
     using System.Text.RegularExpressions;
-    using System.Threading.Tasks;
-    using Discord;
-    using Discord.Commands;
-    using Gabby.Modules;
+    using DSharpPlus.Entities;
     using JetBrains.Annotations;
 
     [UsedImplicitly]
     internal class EmbedHandler
     {
-        internal static Embed GenerateEmbedResponse(string message)
+        internal static DiscordEmbed GenerateEmbedResponse(string message)
         {
-            var builder = new EmbedBuilder
+            var builder = new DiscordEmbedBuilder
             {
-                Color = new Color(114, 137, 218),
+                Color = new DiscordColor(114, 137, 218),
                 Description = message
             };
 
             return builder.Build();
         }
 
-        internal static Embed GenerateEmbedResponse(string message, Color color)
+        internal static DiscordEmbed GenerateEmbedResponse(string message, DiscordColor color)
         {
-            var builder = new EmbedBuilder
+            var builder = new DiscordEmbedBuilder
             {
                 Color = color,
                 Description = message
@@ -32,7 +29,7 @@ namespace Gabby.Handlers
             return builder.Build();
         }
 
-        internal static Embed GenerateYouTubeMediaEmbedResponse(string message, [NotNull] string youtubeVideoLink)
+        internal static DiscordEmbed GenerateYouTubeMediaEmbedResponse(string message, [NotNull] string youtubeVideoLink)
         {
             var vidRegex = new Regex(@"(.*?)(^|\/|v=)([a-z0-9_-]{11})(.*)?", RegexOptions.IgnoreCase);
             // const string vidRegex = @"/^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#\&\?]*).*/";
@@ -40,7 +37,7 @@ namespace Gabby.Handlers
             var regex = vidRegex.Match(youtubeVideoLink);
             var youtubeVideoId = regex.Groups[3].ToString();
 
-            var builder = new EmbedBuilder
+            var builder = new DiscordEmbedBuilder
             {
                 Description = $"\uD83C\uDFB5 {message}",
                 ImageUrl = $"https://img.youtube.com/vi/{youtubeVideoId}/maxresdefault.jpg"
