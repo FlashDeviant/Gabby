@@ -3,14 +3,12 @@
     using System;
     using System.Threading.Tasks;
     using Amazon.DynamoDBv2;
-    using Discord;
-    using Discord.Commands;
-    using Discord.WebSocket;
+    using DSharpPlus;
+    using DSharpPlus.CommandsNext;
     using Gabby.Handlers;
     using Gabby.Services;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
-    using Victoria;
     using MusicService = Gabby.Services.MusicService;
 
     public sealed class Startup
@@ -54,25 +52,15 @@
 
         private void ConfigureServices(IServiceCollection services)
         {
-            // var victoriaConfig = new Configuration
-            // {
-            //     Password = StaticConfiguration["LavaLink:Password"],
-            //     LogSeverity = LogSeverity.Verbose,
-            //     AutoDisconnect = true
-            // };
-
             services.AddAWSService<IAmazonDynamoDB>();
-            services.AddSingleton(new DiscordSocketClient(new DiscordSocketConfig
+            services.AddSingleton(new DiscordClient(new DiscordConfiguration()
                 {
                     // Add discord to the collection
-                    LogLevel = LogSeverity.Verbose, // Tell the logger to give Verbose amount of info
-                    MessageCacheSize = 1000 // Cache 1,000 messages per channel
-                }))
-                .AddSingleton(new CommandService(new CommandServiceConfig
-                {
-                    // Add the command service to the collection
-                    LogLevel = LogSeverity.Verbose, // Tell the logger to give Verbose amount of info
-                    DefaultRunMode = RunMode.Async // Force all commands to run async by default
+                    LogLevel = LogLevel.Debug, // Tell the logger to give Verbose amount of info
+                    MessageCacheSize = 1000, // Cache 1,000 messages per channel
+                    UseInternalLogHandler = true,
+                    Token = StaticConfiguration["Tokens:Discord"],
+                    TokenType = TokenType.Bot
                 }))
                 .AddSingleton<CommandHandler>() // Add the command handler to the collection
                 .AddSingleton<PairHandler>()
@@ -81,15 +69,16 @@
                 .AddSingleton<LoggingService>() // Add logging service to the collection
                 // .AddSingleton(new LavaRestClient(victoriaConfig))
                 // .AddSingleton<LavaSocketClient>()
-                .AddSingleton(new LavaConfig
-                {
-                    Hostname = StaticConfiguration["LavaLink:Host"],
-                    Port = Convert.ToUInt16(StaticConfiguration["LavaLink:Port"]),
-                    Authorization = StaticConfiguration["LavaLink:Password"],
-                    SelfDeaf = false
-                })
-                .AddSingleton<LavaNode>()
+                // .AddSingleton(new LavaConfig
+                // {
+                //     Hostname = StaticConfiguration["LavaLink:Host"],
+                //     Port = Convert.ToUInt16(StaticConfiguration["LavaLink:Port"]),
+                //     Authorization = StaticConfiguration["LavaLink:Password"],
+                //     SelfDeaf = false
+                // })
+                // .AddSingleton<LavaNode>()
                 .AddSingleton<MusicService>()
+                // .AddSingleton<InteractiveService>()
                 .AddSingleton<Random>() // Add random to the collection
                 .AddSingleton(this.Configuration); // Add the configuration to the collection
         }
