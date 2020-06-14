@@ -1,34 +1,38 @@
 ﻿namespace Gabby.Modules
 {
+    using System;
+    using System.Globalization;
     using System.Linq;
     using System.Threading.Tasks;
-    using Discord;
-    using Discord.Commands;
+    using DSharpPlus;
+    using DSharpPlus.CommandsNext;
+    using DSharpPlus.CommandsNext.Attributes;
+    using DSharpPlus.Entities;
+    using Gabby.Handlers;
     using JetBrains.Annotations;
     using Microsoft.Extensions.Configuration;
 
-    [Name("Help")]
-    [Group("help")]
-    public sealed class HelpModule : ModuleBase<SocketCommandContext>
+    public sealed class HelpModule : BaseCommandModule
     {
         private readonly IConfigurationRoot _config;
-        private readonly CommandService _service;
+        private readonly CommandsNextExtension _service;
 
-        public HelpModule(CommandService service, IConfigurationRoot config)
+        public HelpModule(DiscordClient client, IConfigurationRoot config)
         {
-            this._service = service;
+            this._service = client.GetCommandsNext();
             this._config = config;
         }
 
         [Command]
         [UsedImplicitly]
-        public async Task HelpAsync()
+        public async Task HelpAsync([NotNull] CommandContext ctx)
         {
             var prefix = this._config["prefix"];
-            var builder = new EmbedBuilder
+            var builder = new DiscordEmbedBuilder
             {
-                Color = new Color(114, 137, 218),
-                Description = "Hiya, my name is Gabby! I'm here to help make talking to everybody even more fun!\r\n" +
+                Color = new DiscordColor(114, 137, 218),
+                Title = "Hiya, my name is Gabby!",
+                Description = "I'm here to help make talking to everybody even more fun!\r\n" +
                               "\r\n" +
                               "I'm really good at making channel pairs. It's a special pair of channels, one text and one voice. The text one stays hidden until you join the voice channel and goes away when you leave, keeping your server nice and clean.\r\n" +
                               "\r\n" +
@@ -37,62 +41,93 @@
                 ImageUrl = "https://i.imgur.com/SXqMEuM.png"
             };
 
-            foreach (var module in this._service.Modules)
+            foreach (var (moduleName, commands) in this._service.RegisteredCommands)
             {
+                var commandGroup = commands as CommandGroup;
                 string description = null;
-                foreach (var cmd in module.Commands)
+
+                if (commandGroup != null)
                 {
-                    var result = await cmd.CheckPreconditionsAsync(this.Context);
-                    if (!result.IsSuccess) continue;
+                    if (commandGroup.Aliases.Contains(moduleName))
+                        continue; // Exclude aliases as individual modules
 
-                    description += $"{prefix}{cmd.Aliases.First()}";
-                    description = cmd.Parameters.Aggregate(description,
-                        (current, parameterInfo) => current + $" <{parameterInfo.Name}>");
+                    var result = await commandGroup.RunChecksAsync(ctx, true);
+                    if (result.Any()) continue;
 
-                    description += "\n";
+                    foreach (var command in commandGroup.Children)
+                    {
+                        foreach (var overload in command.Overloads)
+                        {
+                            description += $"{prefix}{command.QualifiedName}";
+                            description = overload.Arguments.Aggregate(description,
+                                (current, parameterInfo) => current + $" <{parameterInfo.Name}>");
+                            description += "\n";
+                        }
+                    }
+                }
+                else
+                {
+                    foreach (var overload in commands.Overloads)
+                    {
+                        description += $"{prefix}{commands.QualifiedName}";
+                        description = overload.Arguments.Aggregate(description,
+                            (current, parameterInfo) => current + $" <{parameterInfo.Name}>");
+                        description += "\n";
+                    }
                 }
 
+                var cultInfo = new CultureInfo("en-GB", false).TextInfo;
+
                 if (!string.IsNullOrWhiteSpace(description))
-                    builder.AddField(x =>
-                    {
-                        x.Name = module.Name;
-                        x.Value = description;
-                        x.IsInline = false;
-                    });
+                    builder.AddField($"{cultInfo.ToTitleCase(moduleName.Replace('-', ' '))} Module", description,
+                        false);
             }
 
-            await this.ReplyAsync("", false, builder.Build());
+            await ctx.RespondAsync("", false, builder.Build());
         }
+
 
         [Command]
         [UsedImplicitly]
-        public async Task HelpAsync(string command)
+        public async Task HelpAsync([NotNull] CommandContext ctx, [RemainingText] string command)
         {
-            var result = this._service.Search(this.Context, command);
+            var result = this._service.FindCommand(command, out var args);
+            var prefix = this._config["prefix"];
 
-            if (!result.IsSuccess)
+            if (result == null)
             {
-                await this.ReplyAsync($"Sorry, I couldn't find a command like **{command}**.");
+                await ctx.RespondAsync(embed: EmbedHandler.GenerateEmbedResponse($"Sorry, I couldn't find a command like **{command}**.", DiscordColor.Orange));
                 return;
             }
 
-            //var prefix = _config["prefix"];
-            var builder = new EmbedBuilder
+            var builder = new DiscordEmbedBuilder
             {
-                Color = new Color(114, 137, 218),
-                Description = $"Here are some commands like **{command}**"
+                Color = new DiscordColor(114, 137, 218),
             };
 
-            foreach (var cmd in result.Commands.Select(match => match.Command))
-                builder.AddField(x =>
-                {
-                    x.Name = string.Join(", ", cmd.Aliases);
-                    x.Value = $"Parameters: {string.Join(", ", cmd.Parameters.Select(p => p.Name))}\n" +
-                              $"Summary: {cmd.Summary}";
-                    x.IsInline = false;
-                });
+            if (result is CommandGroup group)
+            {
+                builder.Title = $"I've found {group.Children.Count} sub-command(s) under this command";
+                foreach (var child in group.Children)
+                    foreach (var overload in child.Overloads)
+                        builder.AddField(
+                            $"{prefix}{child.QualifiedName} <{string.Join("> <", overload.Arguments.Select(p => p.Name))}>",
+                            child.Description);
+            }
+            else
+            {
+                builder.Title = $"Help for _\"{result.QualifiedName}\"_";
 
-            await this.ReplyAsync("", false, builder.Build());
+                foreach (var overload in result.Overloads)
+                {
+                    builder.AddField("Summary:",
+                        $"Summary: {result.Description}", false);
+                    builder.AddField("Parameters",
+                        $"`{string.Join("`, `", overload.Arguments.Select(p => p.Name))}`", false);
+                }
+            }
+
+            await ctx.RespondAsync(embed: builder.Build());
         }
     }
 }
