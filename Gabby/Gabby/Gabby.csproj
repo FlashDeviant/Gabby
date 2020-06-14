@@ -21,6 +21,8 @@
     <PackageReference Include="DSharpPlus.VoiceNext" Version="4.0.0-nightly-00705" />
     <PackageReference Include="Fody" Version="6.2.0" />
     <PackageReference Include="JetBrains.Annotations" Version="2020.1.0" />
+    <PackageReference Include="Lavalink4NET" Version="1.4.20" />
+    <PackageReference Include="Lavalink4NET.DSharpPlus" Version="1.4.20" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="2.2.0" />
     <PackageReference Include="NetEscapades.Configuration.Yaml" Version="1.6.0" />
   </ItemGroup>
