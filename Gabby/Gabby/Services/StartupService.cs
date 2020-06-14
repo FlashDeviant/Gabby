@@ -3,7 +3,6 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Reflection;
     using System.Threading.Tasks;
     using DSharpPlus;
     using DSharpPlus.CommandsNext;
@@ -33,8 +32,9 @@
             this._discord = discord;
             this._commands = discord.UseCommandsNext(new CommandsNextConfiguration
             {
-                Services = this._provider,
-                StringPrefixes = new[] {this._config["Prefix"]}
+                Services = provider,
+                StringPrefixes = new[] {config["Prefix"]},
+                EnableDefaultHelp = false
             });
 
             this._discord.Ready += this.OnConnected;
@@ -47,16 +47,14 @@
         ///     Please enter your bot's token into the `_config.yml` file found in the
         ///     applications root directory.
         /// </exception>
-        internal async Task StartAsync()
+        internal async Task StartAsync(CommandHandler handler)
         {
             // var discordToken = this._config["Tokens:Discord"]; // Get the discord token from the config file
             // if (string.IsNullOrWhiteSpace(discordToken))
             //     throw new Exception(
             //         "Please enter your bot's token into the `_config.yml` file found in the applications root directory.");
-
-            await this._discord.ConnectAsync().ConfigureAwait(false); // Login to discord
-            await this._discord.UpdateStatusAsync(new DiscordActivity("with all my friends", ActivityType.Playing)).ConfigureAwait(false);
-            this._commands.RegisterCommands(Assembly.GetEntryAssembly());
+            handler.PopulateCommands();
+            await this._discord.ConnectAsync(new DiscordActivity("with all my friends", ActivityType.Playing)).ConfigureAwait(false); // Login to discord
         }
 
         private async Task OnConnected(ReadyEventArgs readyEventArgs)
