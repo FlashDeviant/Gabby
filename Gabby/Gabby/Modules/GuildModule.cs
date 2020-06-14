@@ -3,56 +3,56 @@ namespace Gabby.Modules
     using System.Linq;
     using System.Threading.Tasks;
     using Amazon.DynamoDBv2.DocumentModel;
-    using Discord;
-    using Discord.Commands;
+    using DSharpPlus.CommandsNext;
+    using DSharpPlus.CommandsNext.Attributes;
+    using DSharpPlus.Entities;
     using Gabby.Data;
     using Gabby.Handlers;
     using Gabby.Models;
     using JetBrains.Annotations;
 
-    [Name("Guild Commands")]
+    [Group("guild")]
+    [Aliases("g")]
     [UsedImplicitly]
-    public sealed class GuildModule : ModuleBase<SocketCommandContext>
+    public sealed class GuildModule : BaseCommandModule
     {
-        [Command("serverinfo")]
-        [Alias("si")]
+        [Command("info")]
         [Priority(2)]
         [RequireOwner]
         [UsedImplicitly]
-        public async Task ServerInfoAsync(ulong? guid = null)
+        public async Task ServerInfoAsync([NotNull] CommandContext ctx, ulong? guid = null)
         {
-            if (guid == null) guid = this.Context.Guild.Id;
+            guid ??= ctx.Guild.Id;
             var info = await DynamoSystem.GetItemAsync<GuildInfo>(guid.ToString()).ConfigureAwait(false);
 
-            Embed embed;
+            DiscordEmbed embed;
             if (info == null || string.IsNullOrEmpty(info.GuildGuid))
                 embed = EmbedHandler.GenerateEmbedResponse(
                     "No Server was found with that GUID",
-                    Color.Orange);
+                    DiscordColor.Orange);
             else
                 embed = EmbedHandler.GenerateEmbedResponse(
                     $"GuildGuid: {info.GuildGuid}\r\n" +
                     $"GuildName: {info.GuildName}");
 
-            await this.ReplyAsync("", false, embed).ConfigureAwait(false);
+            await ctx.RespondAsync("", false, embed).ConfigureAwait(false);
         }
 
-        [Command("serverinfo")]
-        [Alias("si")]
+        [Command("info")]
         [Priority(1)]
         [RequireOwner]
         [UsedImplicitly]
-        public async Task ServerInfoAsync([Remainder] string name)
+        public async Task ServerInfoAsync(CommandContext ctx, [RemainingText] string name)
         {
             var response = await DynamoSystem.QueryItemAsync<GuildInfo>("GuildName", QueryOperator.Equal, name)
                 .ConfigureAwait(false);
 
-            Embed embed;
+            DiscordEmbed embed;
             if (response.Count < 1)
             {
                 embed = EmbedHandler.GenerateEmbedResponse(
                     "No servers were found with that name",
-                    Color.Orange);
+                    DiscordColor.Orange);
             }
             else
             {
@@ -65,39 +65,39 @@ namespace Gabby.Modules
                     message);
             }
 
-            await this.ReplyAsync("", false, embed).ConfigureAwait(false);
+            await ctx.RespondAsync("", false, embed).ConfigureAwait(false);
         }
 
-        [Command("addserverinfo")]
-        [Alias("asi")]
+        [Command("addinfo")]
+        [Aliases("ai")]
         [RequireOwner]
         [UsedImplicitly]
-        public async Task AddServerInfoAsync()
+        public async Task AddServerInfoAsync([NotNull] CommandContext ctx)
         {
-            var response = await DynamoSystem.QueryItemAsync<GuildInfo>("GuildName", QueryOperator.Equal, this.Context.Guild.Name)
+            var response = await DynamoSystem.QueryItemAsync<GuildInfo>("GuildName", QueryOperator.Equal, ctx.Guild.Name)
                 .ConfigureAwait(false);
 
             if (response.Count < 1)
             {
                 var existsResponse = EmbedHandler.GenerateEmbedResponse(
                     "This server already exists in the DB",
-                    Color.Teal);
-                await this.ReplyAsync("", false, existsResponse).ConfigureAwait(false);
+                    DiscordColor.Teal);
+                await ctx.RespondAsync("", false, existsResponse).ConfigureAwait(false);
                 return;
             }
 
             var item = new GuildInfo
             {
-                GuildGuid = this.Context.Guild.Id.ToString(),
-                GuildName = this.Context.Guild.Name
+                GuildGuid = ctx.Guild.Id.ToString(),
+                GuildName = ctx.Guild.Name
             };
             await DynamoSystem.PutItemAsync(item).ConfigureAwait(false);
 
             var addedResponse = EmbedHandler.GenerateEmbedResponse(
                 "This server has been added to the DB",
-                Color.Green);
+                DiscordColor.Green);
 
-            await this.ReplyAsync("", false, addedResponse).ConfigureAwait(false);
+            await ctx.RespondAsync("", false, addedResponse).ConfigureAwait(false);
         }
     }
 }
