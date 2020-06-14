@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -11,10 +11,12 @@
   <ItemGroup>
     <PackageReference Include="AWSSDK.DynamoDBv2" Version="3.3.106.18" />
     <PackageReference Include="AWSSDK.Extensions.NETCore.Setup" Version="3.3.101" />
+    <PackageReference Include="Costura.Fody" Version="4.1.0" />
     <PackageReference Include="DSharpPlus" Version="4.0.0-nightly-00705" />
     <PackageReference Include="DSharpPlus.CommandsNext" Version="4.0.0-nightly-00705" />
     <PackageReference Include="DSharpPlus.Interactivity" Version="4.0.0-nightly-00705" />
     <PackageReference Include="DSharpPlus.VoiceNext" Version="4.0.0-nightly-00705" />
+    <PackageReference Include="Fody" Version="6.2.0" />
     <PackageReference Include="JetBrains.Annotations" Version="2020.1.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="2.2.0" />
     <PackageReference Include="NetEscapades.Configuration.Yaml" Version="1.6.0" />
