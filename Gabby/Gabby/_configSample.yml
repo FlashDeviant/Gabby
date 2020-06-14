@@ -1,4 +1,7 @@
 Prefix: "!"
+Client:
+    LogLevel: Debug
+    MessageCacheSize: 1000
 Tokens:
     Discord: token
 Owners:
@@ -8,6 +11,6 @@ AWS:
     SecretKey: key
     Region: eu-west-2
 LavaLink:
-    Host: 192.168.0.1
-    Port: 2333
+    RestUri: http://192.168.0.1:2333
+    WebSocketUri: ws://192.168.0.1:2333
     Password: "password"
