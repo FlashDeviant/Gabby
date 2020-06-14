@@ -4,12 +4,12 @@
     using System.Threading.Tasks;
     using Amazon.DynamoDBv2;
     using DSharpPlus;
-    using DSharpPlus.CommandsNext;
     using Gabby.Handlers;
     using Gabby.Services;
+    using Lavalink4NET;
+    using Lavalink4NET.DSharpPlus;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
-    using MusicService = Gabby.Services.MusicService;
 
     public sealed class Startup
     {
@@ -39,14 +39,14 @@
             this.ConfigureServices(services);
 
             var provider = services.BuildServiceProvider(); // Build the service provider
-            provider.GetRequiredService<LoggingService>(); // Start the logging service
-            provider.GetRequiredService<CommandHandler>(); // Start the command handler service
+
+            var commandHandler = provider.GetRequiredService<CommandHandler>(); // Start the command handler service
+
             provider.GetRequiredService<PairHandler>();
             provider.GetRequiredService<GuildHandler>();
-
             provider.GetRequiredService<MusicService>();
 
-            await provider.GetRequiredService<StartupService>().StartAsync(); // Start the startup service
+            await provider.GetRequiredService<StartupService>().StartAsync(commandHandler); // Start the startup service
             await Task.Delay(-1); // Keep the program alive
         }
 
@@ -56,8 +56,8 @@
             services.AddSingleton(new DiscordClient(new DiscordConfiguration()
                 {
                     // Add discord to the collection
-                    LogLevel = LogLevel.Debug, // Tell the logger to give Verbose amount of info
-                    MessageCacheSize = 1000, // Cache 1,000 messages per channel
+                    LogLevel = Enum.Parse<LogLevel>(this.Configuration["Client:LogLevel"], true), // Tell the logger to give Verbose amount of info
+                    MessageCacheSize = Convert.ToInt32(this.Configuration["Client:MessageCacheSize"]), // Cache 1,000 messages per channel
                     UseInternalLogHandler = true,
                     Token = StaticConfiguration["Tokens:Discord"],
                     TokenType = TokenType.Bot
@@ -65,21 +65,16 @@
                 .AddSingleton<CommandHandler>() // Add the command handler to the collection
                 .AddSingleton<PairHandler>()
                 .AddSingleton<GuildHandler>()
-                .AddSingleton<StartupService>() // Add startup service to the collection
-                .AddSingleton<LoggingService>() // Add logging service to the collection
-                // .AddSingleton(new LavaRestClient(victoriaConfig))
-                // .AddSingleton<LavaSocketClient>()
-                // .AddSingleton(new LavaConfig
-                // {
-                //     Hostname = StaticConfiguration["LavaLink:Host"],
-                //     Port = Convert.ToUInt16(StaticConfiguration["LavaLink:Port"]),
-                //     Authorization = StaticConfiguration["LavaLink:Password"],
-                //     SelfDeaf = false
-                // })
-                // .AddSingleton<LavaNode>()
                 .AddSingleton<MusicService>()
-                // .AddSingleton<InteractiveService>()
-                .AddSingleton<Random>() // Add random to the collection
+                .AddSingleton<StartupService>() // Add startup service to the collection
+                .AddSingleton<IDiscordClientWrapper, DiscordClientWrapper>()
+                .AddSingleton<IAudioService, LavalinkNode>()
+                .AddSingleton(new LavalinkNodeOptions
+                {
+                    RestUri = this.Configuration["LavaLink:RestUri"],
+                    WebSocketUri = this.Configuration["LavaLink:WebSocketUri"],
+                    Password = this.Configuration["LavaLink:Password"]
+                })
                 .AddSingleton(this.Configuration); // Add the configuration to the collection
         }
     }
