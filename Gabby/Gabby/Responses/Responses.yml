@@ -1,0 +1,50 @@
+﻿Responses:
+    Greetings:
+        1: "Hey there!"
+        2: "Nice to meet you!"
+        3: "Howdy!"
+    Intoduction:
+        1: "My name is Gabby! This place looks like so much fun!"
+        2: "I'm so excited to meet you, I could just explode! Oh, I'm Gabby by the way, hi there!"
+        3: "Have no fear, Gabby is here to save the server!"
+    Successful:
+        1: "Woohoo!"
+        2: "I did it!"
+        3: "Look at me go!"
+    Unsuccessful:
+        1: "Whoops, something wasn't quite right."
+        2: "Nearly, let's try that again."
+        3: "Hmm, I couldn't quite do that"
+    Error:
+        1: "Oh no, something went wrong, my bad!"
+        2: "Uhhhhh, heh heh... That didn't work at all."
+        3: "Sooooooooo, I did try... but it didn't happen."
+    ChannelPair:
+        BadInput:
+            CreatePairBadCharacters: "The channel name you gave me contains funny characters.\r\n\r\nPlease make sure your name only uses alphanumeric characters or spaces"
+            RemovePairBadCharacters: "The channel name you gave me contains funny characters \uD83D\uDE2E, that won't exist silly :P.\r\n\r\nIt should use only alphanumeric characters and spaces."
+            CreateChannelExists: "Oops, a voice or text channel is already using that name already!\r\nI guess it's pretty popular \uD83D\uDE2E"
+            CreateTextChannelExists: "Oops, a text channel is already using that name already!\r\nI guess it's pretty popular \uD83D\uDE2E"
+            CreateRoleExists: "Oops, a role exists with that name already!\r\nI guess it's pretty popular \uD83D\uDE2E"
+            RemoveDuplicatesFound: "Oh no! I found multiple paired voice channels with that name\r\nPlease try renaming the one you meant to something unique and try again"
+        Success:
+            Create: "I made your Channel Pair! Move them wherever you like \uD83D\uDE42\r\nMake sure to not rename either of the channels or the role they are associated with."
+            Remove: "I packed up the channel pair you gave me and sent it on it's way, so long! \uD83D\uDE22"
+            ForceRemove: "I deleted all my info on the channel pair you requested, my skills will no longer work on it! \uD83D\uDE22"
+    Help:
+        BadInput:
+            CommandNotFound: "Sorry, I couldn't find a command like **{1}**."
+        Success:
+            CommandFound: "Here are some commands like **{1}**"
+    Music:
+        Set:
+            ChannelNotEmpty: "Sorry, It looks like your using this channel for something already. Try again in an empty channel."
+        Join:
+            BadInput:
+                BadVol: "Sorry, I can't work out how loud you want me to be, try a number between 1 and 100"
+            AlreadyConnected: "I'm already connected to a voice channel!"
+            NoContext: "You must be connected to a voice channel!"
+            Successful: "Joined {1}, my volume is {2}"
+        Leave:
+            NotConnected: "I'm not connected to any voice channels"
+            UserNonConnected: "Your not in the voice channel, try joining me first."
