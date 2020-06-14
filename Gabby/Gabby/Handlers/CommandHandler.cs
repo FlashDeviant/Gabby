@@ -1,33 +1,41 @@
 ﻿namespace Gabby.Handlers
 {
     using System;
+    using System.Reflection;
     using System.Threading.Tasks;
     using DSharpPlus;
     using DSharpPlus.CommandsNext;
     using DSharpPlus.Entities;
     using DSharpPlus.EventArgs;
+    using DSharpPlus.Interactivity;
     using JetBrains.Annotations;
     using Microsoft.Extensions.Configuration;
 
     [UsedImplicitly]
     public sealed class CommandHandler
     {
-        private readonly CommandsNextExtension _commands;
+        private CommandsNextExtension _commands = null!;
+        private InteractivityExtension _interactive = null!;
         private readonly IConfigurationRoot _config;
         private readonly DiscordClient _discord;
 
         // DiscordSocketClient, CommandService, IConfigurationRoot, and IServiceProvider are injected automatically from the IServiceProvider
         public CommandHandler(
             DiscordClient discord,
-            CommandsNextExtension commands,
             IConfigurationRoot config,
             IServiceProvider provider)
         {
             this._discord = discord;
-            this._commands = commands;
             this._config = config;
 
             this._discord.MessageCreated += this.OnMessageCreatedAsync;
+        }
+
+        internal void PopulateCommands()
+        {
+            this._commands = this._discord.GetCommandsNext();
+            this._commands.RegisterCommands(Assembly.GetEntryAssembly());
+            this._interactive = this._discord.UseInteractivity(new InteractivityConfiguration());
             this._commands.CommandErrored += this.OnCommandErrored;
             this._commands.CommandExecuted += this.OnCommandExecuted;
         }
