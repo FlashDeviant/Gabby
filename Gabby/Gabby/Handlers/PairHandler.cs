@@ -1,5 +1,6 @@
 ﻿namespace Gabby.Handlers
 {
+    using System;
     using System.Threading.Tasks;
     using DSharpPlus;
     using DSharpPlus.EventArgs;
@@ -20,9 +21,17 @@
 
         private async Task OnUserVoiceStateUpdatedAsync([NotNull] VoiceStateUpdateEventArgs args)
         {
-            if (args.User.Id == this._discord.CurrentUser.Id || (args.Before.Channel == args.After.Channel)) return;
+            if (args.User.Id == this._discord.CurrentUser.Id) return;
 
-            await ChannelPairService.HandleChannelPair(args.User, args.Before, args.After, this._discord).ConfigureAwait(false);
+            try
+            {
+                await ChannelPairService.HandleChannelPair(args.User, args.Before, args.After, this._discord)
+                    .ConfigureAwait(false);
+            }
+            catch(Exception e)
+            {
+                var a = 1;
+            }
         }
     }
 }
